@@ -1,0 +1,1785 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>IP Toolbox Gabungan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#f4f4ef; --bg2:#ecece4; --surface:#ffffff; --surface2:#f8f8f3;
+  --ink:#16211c; --ink2:#3d4a43; --muted:#6b7a71;
+  --line:#dde0d4; --line2:#c9cec0;
+  --accent:#0e7a5f; --accent-ink:#ffffff; --accent-soft:#e2f2ec;
+  --hero-bg:#10231c; --hero-ink:#eef7f2; --hero-muted:#a9c4b6; --hero-line:#2a4438;
+  --good:#0e7a5f; --good-bg:#e2f2ec;
+  --warn:#9a6a00; --warn-bg:#fdf0d3;
+  --bad:#b3372f; --bad-bg:#fbe7e4;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --r-lg:18px; --r-md:12px; --r-sm:8px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b100e; --bg2:#0e1512; --surface:#131b17; --surface2:#17211c;
+    --ink:#e8f0ea; --ink2:#c3d2c8; --muted:#8ba294;
+    --line:#26332c; --line2:#33443a;
+    --accent:#2fce9f; --accent-ink:#06231a; --accent-soft:#123128;
+    --hero-bg:#0e2a20; --hero-ink:#f0f8f3; --hero-muted:#a9cabb; --hero-line:#2c5240;
+    --good:#2fce9f; --good-bg:#123128;
+    --warn:#f2c14e; --warn-bg:#3a2f10;
+    --bad:#ff8a80; --bad-bg:#3d1a16;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *{animation:none!important;transition:none!important}
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:16px}
+a{color:var(--accent);font-weight:600}
+button,[role="button"],select,summary,input:not([type="checkbox"]){min-height:44px}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px 64px}
+@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---------- Nav ---------- */
+.nav{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
+.nav-in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 0}
+.nav-in::-webkit-scrollbar{display:none}
+.nav a{flex:0 0 auto;text-decoration:none;color:var(--ink2);font-size:13.5px;font-weight:600;padding:10px 12px;border-radius:999px;min-height:40px;display:inline-flex;align-items:center}
+.nav a:hover{background:var(--surface2);color:var(--ink)}
+@media(max-width:640px){.nav-in{flex-wrap:wrap;overflow-x:visible}}
+
+/* ---------- Hero ---------- */
+.hero{margin-top:18px;background:var(--hero-bg);color:var(--hero-ink);border-radius:22px;padding:28px 24px 24px;position:relative;overflow:hidden;border:1px solid var(--hero-line)}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:36px 36px;mask-image:radial-gradient(circle at 80% 0%,#000 0%,transparent 65%);pointer-events:none}
+.hero .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8fe3c3;margin:0;display:flex;align-items:center;gap:8px}
+.ip-big{font-family:var(--mono);font-size:clamp(34px,6.4vw,58px);font-weight:700;letter-spacing:-.03em;margin:12px 0 4px;word-break:break-all;line-height:1.1;position:relative;z-index:1}
+.ip-big.masked{letter-spacing:.04em;color:#8fe3c3}
+.hero-meta{color:var(--hero-muted);font-size:14.5px;margin:0;position:relative;z-index:1;max-width:640px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+.btn{cursor:pointer;border:1px solid var(--line2);background:var(--surface);color:var(--ink);padding:10px 16px;border-radius:10px;font-size:14.5px;font-weight:600;font-family:var(--sans);display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn{transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink);box-shadow:0 8px 20px rgba(14,122,95,.28)}
+.src-chip{background:rgba(255,255,255,.04)}
+.btn.ghost-dark{background:transparent;border-color:var(--hero-line);color:var(--hero-ink)}
+.btn.ghost-dark:hover{border-color:#8fe3c3}
+.btn.on{background:#8fe3c3;border-color:transparent;color:#0a2e21}
+.btn.small{min-height:38px;padding:7px 12px;font-size:13.5px}
+.btn:disabled{opacity:.55;cursor:wait}
+.hero-note{margin:14px 0 0;font-size:13px;color:var(--hero-muted);position:relative;z-index:1;max-width:680px}
+.status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
+.src-chip{font-family:var(--mono);font-size:12.5px;border:1px solid var(--hero-line);border-radius:999px;padding:6px 11px;color:var(--hero-muted);display:inline-flex;gap:7px;align-items:center}
+.src-chip b{color:var(--hero-ink);font-weight:600}
+
+/* ---------- Layout & cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+@media(max-width:860px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;animation:riseIn .5s ease both}
+.card:hover{transform:translateY(-2px);border-color:var(--line2);box-shadow:0 14px 34px rgba(10,30,20,.08)}
+.card h2{margin:0 0 6px;font-size:19px;letter-spacing:-.01em}
+.card h2::after{content:"";display:block;width:28px;height:3px;border-radius:99px;background:var(--accent);margin-top:8px;opacity:.9}
+.card h3{margin:0 0 6px;font-size:15.5px}
+.card p.lead{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+section.card{margin-top:16px}
+section{scroll-margin-top:76px}
+.kv{display:grid;grid-template-columns:132px 1fr;gap:7px 14px;font-size:14.5px;margin:10px 0 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;word-break:break-word;font-weight:500}
+.kv dd.mono{font-family:var(--mono);font-size:13.5px;font-weight:500}
+@media(max-width:480px){.kv{grid-template-columns:104px 1fr}}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:700}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.neutral{background:var(--surface2);color:var(--ink2);border:1px solid var(--line)}
+#map,#gpsMap,#radiusMap{height:264px;border-radius:var(--r-md);border:1px solid var(--line);margin-top:12px;background:var(--surface2);z-index:0}
+.map-fallback{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;text-align:center;padding:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.mt{margin-top:12px}
+input[type="text"],input[type="number"],select{padding:11px 13px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font-size:15px;font-family:var(--sans)}
+input.mono{font-family:var(--mono);font-size:14px}
+input.grow{flex:1;min-width:180px}
+.muted{color:var(--muted);font-size:14px}
+.small{font-size:13px}
+.out{margin-top:14px}
+.out:empty{display:none}
+pre{background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6;margin:10px 0 0;white-space:pre-wrap;word-break:break-word}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:13px}
+
+/* history */
+.hist-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.hist-item:last-child{border-bottom:0}
+.hist-item .hip{font-family:var(--mono);font-weight:600}
+.hist-item time{color:var(--muted);font-size:13px;white-space:nowrap}
+
+/* mask guide cards */
+.guide-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:6px}
+@media(max-width:860px){.guide-grid{grid-template-columns:1fr}}
+.guide{border:1px solid var(--line);border-radius:var(--r-md);padding:16px;background:var(--surface2)}
+.guide .num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.1em}
+.guide h3{margin:4px 0 6px;font-size:16px}
+.guide p{margin:0 0 10px;color:var(--ink2);font-size:14.5px}
+.guide ol{margin:0 0 12px;padding-left:20px;color:var(--ink2);font-size:14.5px}
+.guide ol li{margin:3px 0}
+
+/* checklist */
+.progress{height:10px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;margin:10px 0 6px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s ease}
+.check-list{list-style:none;margin:8px 0 0;padding:0}
+.check-list li{display:flex;gap:12px;align-items:flex-start;padding:11px 2px;border-bottom:1px solid var(--line)}
+.check-list li:last-child{border-bottom:0}
+.check-list .box{flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:2px solid var(--line2);margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--surface);color:transparent;font-size:15px;font-weight:800;line-height:1}
+.check-list li.done .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.check-list li.done .txt{color:var(--muted);text-decoration:line-through}
+.check-list .txt{font-size:15px;cursor:pointer}
+.check-list .txt small{display:block;color:var(--muted);font-size:13px;text-decoration:none}
+
+/* breach */
+.breach{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;margin-top:12px;background:var(--surface2)}
+.breach h3{margin:0;font-size:16px}
+.breach .when{font-family:var(--mono);font-size:12.5px;color:var(--bad);font-weight:700}
+.breach p{margin:5px 0 0;color:var(--ink2);font-size:14.5px}
+
+footer{margin-top:28px;color:var(--muted);font-size:13.5px;line-height:1.7}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:60;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ---------- Fokus keyboard & navigasi aktif ---------- */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav a.active{background:var(--accent-soft);color:var(--accent)}
+
+/* ---------- Layar laptop & desktop ---------- */
+@media(min-width:1024px){
+  .wrap{max-width:1240px;padding:24px 28px 72px}
+  .nav{margin:0 -28px;padding:0 28px}
+  .nav-in{padding:10px 0}
+  .nav a{font-size:14px;padding:10px 14px}
+  .hero{padding:38px 38px 30px;margin-top:24px}
+  .hero-meta{font-size:15.5px;max-width:760px}
+  .hero-note{max-width:820px}
+  .grid,.grid-3{gap:20px;margin-top:20px}
+  section.card{margin-top:20px}
+  .card{padding:26px}
+  .card h2{font-size:21px}
+  .kv{grid-template-columns:176px 1fr;gap:8px 18px}
+  #map,#gpsMap,#radiusMap{height:340px}
+  .guide-grid{gap:18px}
+  table{font-size:14.5px}
+  td,th{padding:10px 12px}
+}
+@media(min-width:1440px){
+  .wrap{max-width:1340px}
+  #map,#gpsMap,#radiusMap{height:380px}
+}
+
+/* ---------- Tabel menumpuk rapi di layar sempit ---------- */
+@media(max-width:640px){
+  table,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface2);padding:8px 12px;margin:0 0 10px}
+  td{border-bottom:0;padding:4px 0}
+}
+
+/* ---------- Pencari, OSINT, Izin ---------- */
+.perm-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px;flex-wrap:wrap}
+.perm-row:last-child{border-bottom:0}
+.perm-actions{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.res-list{list-style:none;margin:10px 0 0;padding:0}
+.res-list li{padding:9px 0;border-bottom:1px solid var(--line)}
+.res-list li:last-child{border-bottom:0}
+.res-list p{margin:3px 0 0;color:var(--ink2);font-size:14px}
+.sub-list{columns:2;column-gap:24px;font-family:var(--mono);font-size:13px;margin:10px 0 0;padding-left:18px}
+@media(max-width:640px){.sub-list{columns:1}}
+
+/* ---------- Cetak ---------- */
+@media print{
+  .nav,.hero-actions,.toast,.btn{display:none!important}
+  body{background:#fff}
+  .card,.hero,.breach,.guide{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="nav" aria-label="Isi alat">
+  <div class="nav-in">
+    <a href="#beranda">IP Saya</a>
+    <a href="#cari">Cari IP</a>
+    <a href="#pencari">Mesin Pencari</a>
+    <a href="#osint-domain">OSINT Domain</a>
+    <a href="#osint-user">OSINT Username</a>
+    <a href="#nomorhp">Nomor HP</a>
+    <a href="#radius">Radius Pemancar</a>
+    <a href="#tes">Tes Kebocoran</a>
+    <a href="#dns">DNS Lookup</a>
+    <a href="#subnet">Subnet</a>
+    <a href="#samarkan">Samarkan IP</a>
+    <a href="#izin">Izin</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#email">Cek Email Bocor</a>
+    <a href="#repo-intelijen">Repo Data Online</a>
+  </div>
+</nav>
+
+<!-- ============ HERO / IP SAYA ============ -->
+<div class="hero" id="beranda">
+  <p class="kicker">IP Publik</p>
+  <div class="ip-big" id="ipBig">Memeriksa…</div>
+  <p class="hero-meta" id="ipMeta">3 sumber</p>
+  <div class="status-row" id="srcRow">
+    <span class="src-chip">ipify <b id="srcIpify">…</b></span>
+    <span class="src-chip">ip.sb <b id="srcSb">…</b></span>
+    <span class="src-chip">ipwho.is <b id="srcWho">…</b></span>
+    <span class="src-chip" id="agreeChip" style="display:none"></span>
+  </div>
+  <div class="hero-actions">
+    <button class="btn primary" id="btnRefresh">Periksa ulang</button>
+    <button class="btn ghost-dark" id="btnCopy">Salin IP</button>
+    <button class="btn ghost-dark" id="btnDownload">Unduh laporan JSON</button>
+    <button class="btn ghost-dark" id="btnMask" aria-pressed="false">Samarkan tampilan : Nonaktif</button>
+  </div>
+  <p class="hero-note">Samarkan = tampilan saja · Aman screenshot</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Detail koneksi</h2>
+    <dl class="kv" id="kvDetail">
+      <dt>ISP</dt><dd>Memuat…</dd>
+    </dl>
+    <div class="row mt">
+      <a class="btn small" id="linkWhois" href="https://who.is/" target="_blank" rel="noopener">Whois IP ini</a>
+      <a class="btn small" id="linkAbuse" href="https://www.abuseipdb.com/" target="_blank" rel="noopener">Cek reputasi di AbuseIPDB</a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Lokasi perkiraan</h2>
+    <dl class="kv" id="kvLoc">
+      <dt>Negara</dt><dd>Memuat…</dd>
+    </dl>
+    <div id="map"><div class="map-fallback">Peta dimuat setelah lokasi ditemukan.</div></div>
+    <p class="muted small" style="margin:10px 0 0">Perkiraan kota · bukan alamat persis</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>IPv4 dan IPv6</h2>
+    <dl class="kv" id="kvVers">
+      <dt>IPv4</dt><dd>Memuat…</dd>
+    </dl>
+    <p class="muted" style="margin:10px 0 0">Kosong = IPv6 belum aktif</p>
+  </div>
+  <div class="card">
+    <h2>Riwayat sesi ini</h2>
+    <p class="lead">Sesi ini saja · tidak tersimpan</p>
+    <div id="history"><p class="muted">Belum ada riwayat.</p></div>
+    <div class="row mt"><button class="btn small" id="btnClearHist">Bersihkan riwayat</button></div>
+  </div>
+</div>
+
+<!-- ============ CARI IP ============ -->
+<section class="card" id="cari">
+  <h2>Cari IP apa saja</h2>
+  <p class="lead">IPv4 / IPv6 → lokasi · ISP · ASN</p>
+  <div class="row">
+    <input class="grow mono" id="lookupIp" type="text" inputmode="text" placeholder="Contoh 8.8.8.8 atau 2001:4860:4860::8888" aria-label="Alamat IP yang dicari">
+    <button class="btn primary" id="btnLookup">Cari IP</button>
+    <button class="btn" id="btnLookupMine">Pakai IP saya</button>
+  </div>
+  <div class="row mt">
+    <span class="muted small">Contoh cepat</span>
+    <button class="btn small" data-example="8.8.8.8">8.8.8.8 Google DNS</button>
+    <button class="btn small" data-example="1.1.1.1">1.1.1.1 Cloudflare</button>
+    <button class="btn small" data-example="9.9.9.9">9.9.9.9 Quad9</button>
+  </div>
+  <div class="out" id="lookupOut"></div>
+</section>
+
+<!-- ============ MESIN PENCARI ============ -->
+<section class="card" id="pencari">
+  <h2>Mesin pencari</h2>
+  <p class="lead">DuckDuckGo + Wikipedia · paralel</p>
+  <div class="row">
+    <input class="grow" id="searchQ" type="text" placeholder="Kata kunci, contoh: alamat IP publik" aria-label="Kata kunci pencarian">
+    <button class="btn primary" id="btnSearch">Cari</button>
+  </div>
+  <div class="row mt" id="searchLinks" style="display:none">
+    <span class="muted small">Buka di</span>
+    <a class="btn small" id="linkDdg" href="#" target="_blank" rel="noopener">DuckDuckGo</a>
+    <a class="btn small" id="linkGoogle" href="#" target="_blank" rel="noopener">Google</a>
+    <a class="btn small" id="linkBing" href="#" target="_blank" rel="noopener">Bing</a>
+  </div>
+  <div class="out" id="searchOut"></div>
+</section>
+
+<!-- ============ OSINT DOMAIN ============ -->
+<section class="card" id="osint-domain">
+  <h2>OSINT domain</h2>
+  <p class="lead">Data publik · RDAP · crt.sh · DNS</p>
+  <div class="row">
+    <input class="grow mono" id="osintDomain" type="text" inputmode="url" placeholder="Contoh wikipedia.org" aria-label="Domain untuk OSINT">
+    <button class="btn primary" id="btnOsintDomain">Periksa domain</button>
+  </div>
+  <div class="out" id="osintDomainOut"></div>
+</section>
+
+<!-- ============ OSINT USERNAME ============ -->
+<section class="card" id="osint-user">
+  <h2>OSINT username</h2>
+  <p class="lead">Tautan profil publik · cek manual satu-satu</p>
+  <div class="row">
+    <input class="grow mono" id="osintUser" type="text" placeholder="Contoh torvalds" aria-label="Username untuk OSINT">
+    <button class="btn primary" id="btnOsintUser">Buat tautan profil</button>
+  </div>
+  <p class="muted small" style="margin:10px 0 0">Situs memblokir cek otomatis, jadi tautan dibuka manual. Nama sama belum tentu orang yang sama.</p>
+  <div class="out" id="osintUserOut"></div>
+</section>
+
+<!-- ============ NOMOR HP & PERANGKAT ============ -->
+<section class="card" id="nomorhp">
+  <h2>Deteksi nomor HP dan perangkat</h2>
+  <p class="lead">Operator · kartu · format · 100% lokal</p>
+  <div class="row">
+    <input class="grow mono" id="phoneInput" type="text" inputmode="tel" placeholder="Contoh 081234567890 atau +6281234567890" aria-label="Nomor HP yang dianalisa">
+    <button class="btn primary" id="btnPhone">Analisa nomor</button>
+  </div>
+  <div class="row mt">
+    <span class="muted small">Coba awalan</span>
+    <button class="btn small" data-phone="081234567890">0812 Telkomsel</button>
+    <button class="btn small" data-phone="085712345678">0857 Indosat</button>
+    <button class="btn small" data-phone="089612345678">0896 Tri</button>
+    <button class="btn small" data-phone="087812345678">0878 XL</button>
+    <button class="btn small" data-phone="083812345678">0838 AXIS</button>
+    <button class="btn small" data-phone="088812345678">0888 Smartfren</button>
+  </div>
+  <div class="out" id="phoneOut"></div>
+
+  <div class="grid" style="margin-top:18px">
+    <div>
+      <h3>Perangkat ini</h3>
+      <p class="muted" style="margin:0 0 4px">Terbaca langsung dari browser</p>
+      <dl class="kv" id="kvDevice"></dl>
+      <div class="row mt">
+        <button class="btn small primary" id="btnDevicePrecise">Minta detail perangkat presisi</button>
+        <button class="btn small" id="btnCopyDevice">Salin info perangkat</button>
+      </div>
+      <p class="muted small" id="deviceNote" style="margin:10px 0 0"></p>
+    </div>
+    <div>
+      <h3>Batas nomor saja</h3>
+      <p class="muted" style="margin:0">Tidak melacak lokasi / perangkat orang lain.</p>
+      <h3 style="margin-top:16px">Acuan</h3>
+      <p class="muted" style="margin:0">PhoneInfoga · 18,6 ribu bintang di GitHub · GPL-3.0</p>
+      <div class="row mt">
+        <a class="btn small primary" href="https://github.com/sundowndev/phoneinfoga" target="_blank" rel="noopener">Buka repo PhoneInfoga</a>
+        <button class="btn small" data-copy="phoneinfoga scan -n +6281234567890">Salin perintah scan</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px">Koordinat perangkat ini</h3>
+  <p class="muted" style="margin:0">GPS perangkat ini · perlu izin lokasi</p>
+  <div class="row mt">
+    <button class="btn primary" id="btnGps">Cek koordinat akurat perangkat ini</button>
+  </div>
+  <div class="out" id="gpsOut"></div>
+  <div id="gpsMap" style="display:none"><div class="map-fallback">Peta posisi perangkat dimuat setelah izin lokasi diberikan.</div></div>
+
+  <h3 style="margin-top:20px">Awalan operator Indonesia</h3>
+  <p class="muted" style="margin:0">4 digit pertama = operator penerbit</p>
+  <table>
+    <thead><tr><th>Operator</th><th>Awalan</th><th>Produk</th></tr></thead>
+    <tbody>
+      <tr><td><b>Telkomsel</b></td><td class="mono">0811, 0812, 0813, 0821, 0822, 0823, 0851, 0852, 0853</td><td>Halo, SIMPATI, Kartu As, by.U memakai jaringan ini</td></tr>
+      <tr><td><b>Indosat</b></td><td class="mono">0814, 0815, 0816, 0855, 0856, 0857, 0858</td><td>IM3, Mentari, Matrix</td></tr>
+      <tr><td><b>Tri</b></td><td class="mono">0895, 0896, 0897, 0898, 0899</td><td>Tri, kini satu grup dengan Indosat</td></tr>
+      <tr><td><b>XL</b></td><td class="mono">0817, 0818, 0819, 0859, 0877, 0878</td><td>XL Prabayar, Prioritas</td></tr>
+      <tr><td><b>AXIS</b></td><td class="mono">0831, 0832, 0833, 0838</td><td>AXIS, satu grup dengan XL</td></tr>
+      <tr><td><b>Smartfren</b></td><td class="mono">0881, 0882, 0883, 0884, 0885, 0886, 0887, 0888, 0889</td><td>Smartfren</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ RADIUS PEMANCAR ============ -->
+<section class="card" id="radius">
+  <h2>Radius pemancar</h2>
+  <p class="lead">GPS · radius meter</p>
+
+  <h3>1. Radius GPS</h3>
+  <p class="muted" style="margin:0">GPS ± meter · luar 5–30 m · dalam 50–500 m</p>
+  <div class="row mt">
+    <button class="btn primary" id="btnRadius">Cek radius perangkat saya</button>
+    <button class="btn" id="btnRadiusUseGps">Pakai koordinat GPS terakhir</button>
+  </div>
+  <div class="out" id="radiusOut"></div>
+  <div id="radiusMap" style="display:none"><div class="map-fallback">Peta radius dimuat setelah koordinat dibaca.</div></div>
+
+  <h3 style="margin-top:22px">2. Patokan radius sel</h3>
+  <p class="muted" style="margin:0">Kota padat = kecil · desa = besar</p>
+  <div class="row mt">
+    <select id="radiusEnv" aria-label="Lingkungan lokasi">
+      <option value="padat">Kota padat, banyak gedung</option>
+      <option value="kota" selected>Kota biasa</option>
+      <option value="pinggiran">Pinggiran kota</option>
+      <option value="desa">Pedesaan</option>
+    </select>
+    <button class="btn" id="btnEnv">Lihat patokan radius</button>
+  </div>
+  <div class="out" id="envOut"></div>
+  <table>
+    <thead><tr><th>Jaringan</th><th>Kota padat</th><th>Kota</th><th>Pinggiran</th><th>Pedesaan</th></tr></thead>
+    <tbody>
+      <tr><td><b>5G</b></td><td>100 sampai 300 m</td><td>300 m sampai 1 km</td><td>1 sampai 2 km</td><td>2 sampai 5 km</td></tr>
+      <tr><td><b>4G LTE</b></td><td>300 m sampai 1 km</td><td>1 sampai 3 km</td><td>3 sampai 5 km</td><td>5 sampai 10 km</td></tr>
+      <tr><td><b>3G</b></td><td>500 m sampai 2 km</td><td>2 sampai 5 km</td><td>5 sampai 8 km</td><td>8 sampai 15 km</td></tr>
+      <tr><td><b>2G</b></td><td>1 sampai 3 km</td><td>3 sampai 10 km</td><td>10 sampai 20 km</td><td>sampai 35 km</td></tr>
+    </tbody>
+  </table>
+  <p class="muted small" style="margin:12px 0 0">Browser tidak membaca Cell ID</p>
+</section>
+
+<!-- ============ TES KEBOCORAN ============ -->
+<section class="card" id="tes">
+  <h2>Tes kebocoran</h2>
+  <p class="lead">WebRTC · koneksi · kecepatan</p>
+  <div class="row">
+    <button class="btn primary" id="btnLeak">Tes WebRTC</button>
+    <button class="btn" id="btnConn">Tes konektivitas</button>
+    <button class="btn" id="btnSpeed">Tes kecepatan unduh</button>
+    <button class="btn" id="btnAllTests">Jalankan semua tes</button>
+  </div>
+  <div class="out" id="leakOut"></div>
+  <div class="out" id="connOut"></div>
+  <div class="out" id="speedOut"></div>
+  <div class="grid" style="margin-top:16px">
+    <div>
+      <h3>WebRTC</h3>
+      <p class="muted" style="margin:0">Bisa bocorkan IP asli di balik VPN</p>
+    </div>
+    <div>
+      <h3>Browser kamu</h3>
+      <dl class="kv" id="kvBrowser" style="margin-top:4px"></dl>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DNS LOOKUP ============ -->
+<section class="card" id="dns">
+  <h2>DNS Lookup</h2>
+  <p class="lead">A · AAAA · MX · NS · TXT · CNAME · SOA</p>
+  <div class="row">
+    <input class="grow" id="dnsDomain" type="text" inputmode="url" placeholder="Contoh google.com" aria-label="Nama domain">
+    <select id="dnsType" aria-label="Tipe catatan DNS">
+      <option value="A">A</option>
+      <option value="AAAA">AAAA</option>
+      <option value="MX">MX</option>
+      <option value="NS">NS</option>
+      <option value="TXT">TXT</option>
+      <option value="CNAME">CNAME</option>
+      <option value="SOA">SOA</option>
+    </select>
+    <button class="btn primary" id="btnDns">Cari DNS</button>
+  </div>
+  <div class="out" id="dnsOut"></div>
+</section>
+
+<!-- ============ SUBNET ============ -->
+<section class="card" id="subnet">
+  <h2>Kalkulator subnet</h2>
+  <p class="lead">Network · broadcast · host · rentang</p>
+  <div class="row">
+    <input class="mono" id="subIp" type="text" value="192.168.1.10" style="width:190px" aria-label="Alamat IP untuk subnet">
+    <input id="subCidr" type="number" value="24" min="0" max="32" style="width:96px" aria-label="CIDR">
+    <button class="btn primary" id="btnSubnet">Hitung</button>
+  </div>
+  <div class="row mt">
+    <button class="btn small" data-subnet="10.0.0.5|8">10.0.0.5 /8</button>
+    <button class="btn small" data-subnet="172.16.5.20|16">172.16.5.20 /16</button>
+    <button class="btn small" data-subnet="192.168.10.77|26">192.168.10.77 /26</button>
+    <button class="btn small" data-subnet="192.168.1.200|30">192.168.1.200 /30</button>
+  </div>
+  <div class="out" id="subnetOut"></div>
+</section>
+
+<!-- ============ SAMARKAN IP ============ -->
+<section class="card" id="samarkan">
+  <h2>Samarkan IP</h2>
+  <p class="lead">Tor · VPN · Proxy · Linux — pilih jalurmu</p>
+  <div class="guide-grid">
+    <div class="guide">
+      <span class="num">JALUR 1 · PALING ANONIM</span>
+      <h3>Tor Browser</h3>
+      <p>IP exit Tor · berganti-ganti</p>
+      <ol>
+        <li>Unduh & pasang</li>
+        <li>Connect</li>
+        <li>Buka lagi halaman ini</li>
+      </ol>
+      <div class="row">
+        <a class="btn small primary" href="https://www.torproject.org/download/" target="_blank" rel="noopener">Unduh Tor Browser</a>
+        <button class="btn small" data-copy="https://check.torproject.org/">Salin tautan cek Tor</button>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">JALUR 2 · PALING FLEKSIBEL</span>
+      <h3>VPN di server sendiri</h3>
+      <p>WireGuard di VPS sendiri</p>
+      <ol>
+        <li>Siapkan VPS</li>
+        <li>Pasang Amnezia otomatis</li>
+        <li>Hubungkan & cek IP</li>
+      </ol>
+      <div class="row">
+        <a class="btn small primary" href="https://amnezia.org/" target="_blank" rel="noopener">Situs Amnezia VPN</a>
+        <a class="btn small" href="https://www.wireguard.com/install/" target="_blank" rel="noopener">Pasang WireGuard</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">JALUR 3 · PALING CEPAT</span>
+      <h3>Proxy di browser</h3>
+      <p>Browser saja · tercepat</p>
+      <ol>
+        <li>Pasang ekstensi</li>
+        <li>Aktifkan proxy</li>
+        <li>Tes WebRTC</li>
+      </ol>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/CroxyProxy/CroxyProxy-Extension" target="_blank" rel="noopener">CroxyProxy Extension</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">JALUR 4 · LINUX TOTAL</span>
+      <h3>Semua traffic Linux lewat Tor</h3>
+      <p>Semua traffic + DNS via Tor · sudo</p>
+      <div class="row">
+        <button class="btn small primary" id="btnDlScript">Unduh script mask-tor-linux.sh</button>
+        <button class="btn small" data-copy="sudo bash mask-tor-linux.sh start">Salin perintah mulai</button>
+        <button class="btn small" data-copy="sudo bash mask-tor-linux.sh stop">Salin perintah berhenti</button>
+      </div>
+      <pre id="scriptPreview"></pre>
+    </div>
+  </div>
+  <p class="muted" style="margin:14px 0 0">Selalu verifikasi: Periksa ulang + Tes WebRTC</p>
+</section>
+
+<!-- ============ IZIN BROWSER ============ -->
+<section class="card" id="izin">
+  <h2>Izin browser</h2>
+  <p class="lead">Status izin halaman ini di browser kamu</p>
+  <div id="permList"><p class="muted">Belum dicek.</p></div>
+  <div class="row mt">
+    <button class="btn" id="btnCheckPerms">Cek status</button>
+    <button class="btn primary" id="btnAllowAll">Izinkan semua</button>
+  </div>
+  <div class="out" id="permLog"></div>
+  <p class="muted small" style="margin:12px 0 0">Pernah ketuk Blokir? Browser tidak akan bertanya lagi. Reset di Chrome: ketuk ikon gembok di samping alamat, lalu Izin, atur ulang izinnya di sana.</p>
+</section>
+
+<!-- ============ CHECKLIST ============ -->
+<section class="card" id="checklist">
+  <h2>Checklist keamanan</h2>
+  <p class="lead">Ketuk untuk selesai</p>
+  <div class="progress" role="progressbar" aria-label="Progres checklist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="checkBarWrap"><i id="checkBar"></i></div>
+  <p class="muted" id="checkProgress" style="margin:0">0 dari 12 selesai</p>
+  <ul class="check-list" id="checkList"></ul>
+</section>
+
+<!-- ============ CEK EMAIL BOCOR ============ -->
+<section class="card" id="email">
+  <h2>Cek kebocoran email</h2>
+  <p class="lead">Have I Been Pwned · hasil terakhir di bawah</p>
+  <div class="row">
+    <a class="btn primary" href="https://haveibeenpwned.com/" target="_blank" rel="noopener">Buka haveibeenpwned.com</a>
+  </div>
+  <h3 style="margin:20px 0 0">agusekurnia@gmail.com</h3>
+  <p class="muted" style="margin:4px 0 0">3 kebocoran · 0 paste</p>
+  <div class="breach">
+    <span class="when">APRIL 2020</span>
+    <h3>Tokopedia</h3>
+    <p>15 jt baris · nama, email, lahir, sandi</p>
+  </div>
+  <div class="breach">
+    <span class="when">JUNI 2020</span>
+    <h3>Wattpad</h3>
+    <p>270 jt catatan · bio, email, IP, sandi, sosmed</p>
+  </div>
+  <div class="breach">
+    <span class="when">JUNI 2024</span>
+    <h3>Z-lib</h3>
+    <p>10 jt catatan · dompet kripto, email, sandi</p>
+  </div>
+  <p class="muted" style="margin:14px 0 0">→ Ganti sandi ketiganya + aktifkan 2FA</p>
+</section>
+
+<!-- ============ REPO DATA ONLINE ============ -->
+<section class="card" id="repo-intelijen">
+  <h2>Repo data online</h2>
+  <p class="lead">Koleksi repo GitHub untuk pencarian data publik dan analisa data</p>
+  <div class="guide-grid">
+    <div class="guide">
+      <span class="num">REPO 1 · KATALOG ALAT</span>
+      <h3>awesome-osint</h3>
+      <p>Daftar ratusan alat pencarian data publik</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/brandonhimpfen/awesome-osint/blob/HEAD/README.md" target="_blank" rel="noopener">Buka repo</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">REPO 2 · KATALOG REPO</span>
+      <h3>awesome-osint-repos</h3>
+      <p>Katalog 491 repo, dipilah per target seperti username, domain, dan nomor HP</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/osintshifu/awesome-osint-repos/blob/HEAD/README.md" target="_blank" rel="noopener">Buka repo</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">REPO 3 · PETA ALAT</span>
+      <h3>OSINT Framework</h3>
+      <p>Peta interaktif sekitar 700 alat</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/lockfale/OSINT-Framework" target="_blank" rel="noopener">Buka repo</a>
+        <a class="btn small" href="https://osintframework.com" target="_blank" rel="noopener">Jalankan online</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">REPO 4 · PENGUMPUL DATA</span>
+      <h3>SpiderFoot</h3>
+      <p>Alat pengumpul data publik dengan 309 modul</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/smicallef/spiderfoot" target="_blank" rel="noopener">Buka repo</a>
+      </div>
+    </div>
+    <div class="guide">
+      <span class="num">REPO 5 · CARI USERNAME</span>
+      <h3>Sherlock</h3>
+      <p>Cari username di banyak platform sekaligus</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/sherlock-project/sherlock" target="_blank" rel="noopener">Buka repo</a>
+        <a class="btn small" href="https://sherlock-osint.com/sherlock-online" target="_blank" rel="noopener">Jalankan online</a>
+      </div>
+      <p class="muted small" style="margin:10px 0 0">Versi online pihak ketiga, bukan dari proyek resminya. Laporan lengkapnya berbayar.</p>
+    </div>
+    <div class="guide">
+      <span class="num">REPO 6 · ANALISA DATA</span>
+      <h3>Insight Orchestra</h3>
+      <p>Alat analisa data yang bisa dipasang sendiri untuk membuka file CSV dan database</p>
+      <div class="row">
+        <a class="btn small primary" href="https://github.com/laban254/insight-orchestra" target="_blank" rel="noopener">Buka repo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>ipify · ip.sb · ipwho.is · Google DNS · OpenStreetMap · DuckDuckGo · Wikipedia · RDAP · crt.sh</p>
+</footer>
+
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+var state = { ip:'', masked:false, detail:null, v6:'', v4:'', map:null, marker:null, history:[], checks:{}, lastGps:null, radiusMap:null, radiusMarker:null, radiusCircle:null, radiusLine:null };
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(msg){ var t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2200); }
+function copyText(txt, msg){
+  function done(){ toast(msg || 'Disalin'); }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, function(){ fallback(); }); } else { fallback(); }
+  function fallback(){ var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ toast(txt); } document.body.removeChild(ta); }
+}
+function maskIp(ip){
+  if(!ip) return ip;
+  if(ip.indexOf('.') > -1 && ip.indexOf(':') === -1){ var p = ip.split('.'); if(p.length === 4) return p[0] + '.' + p[1] + '.***.***'; }
+  if(ip.indexOf(':') > -1){ var parts = ip.split(':'); return parts.slice(0,2).join(':') + ':****:****'; }
+  return '***';
+}
+function showIp(){
+  var shown = state.masked ? maskIp(state.ip) : (state.ip || '-');
+  $('#ipBig').textContent = shown;
+  $('#ipBig').classList.toggle('masked', state.masked);
+  var b = $('#btnMask'); b.textContent = 'Samarkan tampilan : ' + (state.masked ? 'Aktif' : 'Nonaktif'); b.classList.toggle('on', state.masked); b.setAttribute('aria-pressed', state.masked ? 'true' : 'false');
+}
+function kv(el, pairs){
+  el.innerHTML = pairs.map(function(p){ return '<dt>' + esc(p[0]) + '</dt><dd class="' + (p[2] ? 'mono' : '') + '">' + esc(p[1] == null || p[1] === '' ? '-' : p[1]) + '</dd>'; }).join('');
+}
+function fetchJson(url, timeout){
+  var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, timeout || 9000);
+  return fetch(url, { signal:c.signal, headers:{ 'Accept':'application/json' } }).then(function(r){ return r.json(); }).then(function(j){ clearTimeout(t); return j; }, function(e){ clearTimeout(t); throw e; });
+}
+function setDot(id, cls, txtId, txt){ var d = $(id); if(d) d.className = 'dot ' + cls; if(txtId) $(txtId).textContent = txt; }
+
+function renderMap(lat, lon, label){
+  var box = $('#map');
+  if(typeof L === 'undefined'){ box.innerHTML = '<div class="map-fallback">Peta tidak termuat. Koordinat lokasi ini ' + esc(lat) + ', ' + esc(lon) + '.</div>'; return; }
+  if(!state.map){
+    box.innerHTML = '';
+    state.map = L.map('map').setView([lat, lon], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }).addTo(state.map);
+  } else { state.map.setView([lat, lon], 10); }
+  if(state.marker) state.marker.remove();
+  state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(esc(label || ''));
+  setTimeout(function(){ if(state.map) state.map.invalidateSize(); }, 250);
+}
+
+function saveHistory(ip){
+  if(!ip) return;
+  var now = new Date();
+  state.history = state.history.filter(function(x){ return x.ip !== ip; });
+  state.history.unshift({ ip:ip, at:now });
+  if(state.history.length > 10) state.history.length = 10;
+  renderHistory();
+}
+function renderHistory(){
+  var box = $('#history');
+  if(!state.history.length){ box.innerHTML = '<p class="muted">Belum ada riwayat.</p>'; return; }
+  box.innerHTML = state.history.map(function(x){
+    var jam = x.at.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    var tgl = x.at.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    return '<div class="hist-item"><span class="hip">' + esc(state.masked ? maskIp(x.ip) : x.ip) + '</span><time>' + esc(tgl + ' ' + jam) + '</time></div>';
+  }).join('');
+}
+
+function checkIp(){
+  $('#ipBig').textContent = 'Memeriksa…';
+  $('#ipMeta').textContent = '3 sumber';
+  setDot('#dotIpify','wait','#srcIpify','…'); setDot('#dotSb','wait','#srcSb','…'); setDot('#dotWho','wait','#srcWho','…');
+  $('#agreeChip').style.display = 'none';
+
+  var pIpify = fetchJson('https://api.ipify.org?format=json', 9000).then(function(j){ setDot('#dotIpify','ok','#srcIpify', j.ip || 'kosong'); return j.ip || ''; }, function(){ setDot('#dotIpify','err','#srcIpify','gagal'); return ''; });
+  var pSb = fetchJson('https://api.ip.sb/geoip').then(function(j){ setDot('#dotSb','ok','#srcSb', j.ip || 'kosong'); return j; }, function(){ setDot('#dotSb','err','#srcSb','gagal'); return {}; });
+  var pWho = fetchJson('https://ipwho.is/').then(function(j){ setDot('#dotWho','ok','#srcWho', j.ip || 'kosong'); return j; }, function(){ setDot('#dotWho','err','#srcWho','gagal'); return {}; });
+  var pV6 = fetchJson('https://api64.ipify.org?format=json', 9000).then(function(j){ return (j.ip && j.ip.indexOf(':') > -1) ? j.ip : ''; }, function(){ return ''; });
+
+  Promise.all([pIpify, pSb, pWho, pV6]).then(function(res){
+    var ipify = res[0], sb = res[1] || {}, who = res[2] || {};
+    state.v6 = res[3] || '';
+    state.ip = who.ip || sb.ip || ipify || '';
+    state.v4 = state.ip && state.ip.indexOf(':') === -1 ? state.ip : (ipify || '');
+    if(!state.ip){
+      $('#ipBig').textContent = 'Tidak terdeteksi';
+      $('#ipMeta').textContent = 'Gagal · cek koneksi, coba lagi';
+      kv($('#kvDetail'), [['Alamat IP','Tidak tersedia'],['ISP','Tidak tersedia'],['ASN','Tidak tersedia'],['Zona waktu','Tidak tersedia']]);
+      kv($('#kvLoc'), [['Negara','Tidak tersedia'],['Kota','Tidak tersedia'],['Latitude','Tidak tersedia'],['Longitude','Tidak tersedia']]);
+      kv($('#kvVers'), [['IPv4','Tidak terdeteksi', true],['IPv6','Tidak terdeteksi', true]]);
+      $('#map').innerHTML = '<div class="map-fallback">Peta tidak bisa dimuat karena lokasi tidak ditemukan.</div>';
+      return;
+    }
+    var d = (who.success === false || !who.ip) ? sb : who;
+    state.detail = d;
+    showIp();
+
+    var ips = [ipify, sb.ip, who.ip].filter(Boolean);
+    var uniq = ips.filter(function(v, i){ return ips.indexOf(v) === i; });
+    var agree = $('#agreeChip'); agree.style.display = 'inline-flex';
+    if(uniq.length > 1){ agree.innerHTML = 'Beda hasil <b>' + esc(uniq.join(' vs ')) + '</b>'; $('#ipMeta').textContent = 'Beda sumber · proxy/VPN parsial?'; }
+    else { agree.innerHTML = 'Semua setuju'; $('#ipMeta').textContent = 'Terverifikasi · 3 sumber sama'; }
+
+    var conn = d.connection || {};
+    kv($('#kvDetail'), [
+      ['Alamat IP', state.masked ? maskIp(state.ip) : state.ip, true],
+      ['ISP', conn.isp || d.isp],
+      ['ASN', conn.asn ? 'AS' + conn.asn + (conn.org ? ' ' + conn.org : '') : (d.asn ? 'AS' + d.asn : '')],
+      ['Organisasi', conn.org || d.org || conn.isp || d.isp],
+      ['Domain ISP', conn.domain || ''],
+      ['Zona waktu', (d.timezone && (d.timezone.id || d.timezone)) ? ((d.timezone.id || d.timezone) + (d.timezone.abbr ? ' (' + d.timezone.abbr + ')' : '')) : ''],
+      ['Waktu lokal IP', d.timezone && d.timezone.current_time ? d.timezone.current_time : ''],
+      ['Tipe koneksi', d.type || '']
+    ]);
+    kv($('#kvLoc'), [
+      ['Negara', d.country ? d.country + (d.country_code ? ' (' + d.country_code + ')' : '') : ''],
+      ['Kota', d.city],
+      ['Region', d.region],
+      ['Kode pos', d.postal || ''],
+      ['Latitude', d.latitude != null ? String(d.latitude) : '', true],
+      ['Longitude', d.longitude != null ? String(d.longitude) : '', true],
+      ['Ibu kota', d.capital || '']
+    ]);
+    kv($('#kvVers'), [
+      ['IPv4', state.v4 || 'Tidak terdeteksi', true],
+      ['IPv6', state.v6 || 'Tidak terdeteksi', true],
+      ['IP tampil', state.masked ? maskIp(state.ip) : state.ip, true]
+    ]);
+    $('#linkWhois').href = 'https://who.is/whois-ip/ip-address/' + encodeURIComponent(state.ip);
+    $('#linkAbuse').href = 'https://www.abuseipdb.com/check/' + encodeURIComponent(state.ip);
+    if(d.latitude != null && d.longitude != null) renderMap(d.latitude, d.longitude, state.ip);
+    saveHistory(state.ip);
+  });
+}
+
+/* ---------- Lookup ---------- */
+function isIp(s){ return /^(\d{1,3}\.){3}\d{1,3}$/.test(s) || /^[0-9a-fA-F:]+$/.test(s) && s.indexOf(':') > -1; }
+function doLookup(){
+  var ip = $('#lookupIp').value.trim();
+  var out = $('#lookupOut');
+  if(!isIp(ip)){ out.innerHTML = '<span class="pill bad">Format IP tidak valid</span><p class="muted">Masukkan IPv4 seperti 8.8.8.8 atau IPv6 seperti 2001:4860:4860::8888.</p>'; return; }
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Mencari ' + esc(ip) + '…</p>';
+  fetchJson('https://ipwho.is/' + encodeURIComponent(ip)).then(function(d){
+    if(d.success === false){ out.innerHTML = '<span class="pill bad">Tidak ditemukan</span><p class="muted">' + esc(d.message || 'IP ini tidak ada di database.') + '</p>'; return; }
+    var conn = d.connection || {};
+    out.innerHTML =
+      '<span class="pill good">Ditemukan</span>' +
+      '<dl class="kv">' +
+      '<dt>Alamat IP</dt><dd class="mono">' + esc(d.ip) + '</dd>' +
+      '<dt>Negara</dt><dd>' + esc(d.country || '-') + ' (' + esc(d.country_code || '-') + ')</dd>' +
+      '<dt>Kota</dt><dd>' + esc(d.city || '-') + ', ' + esc(d.region || '-') + '</dd>' +
+      '<dt>ISP</dt><dd>' + esc(conn.isp || '-') + '</dd>' +
+      '<dt>ASN</dt><dd>AS' + esc(conn.asn != null ? conn.asn : '-') + ' ' + esc(conn.org || '') + '</dd>' +
+      '<dt>Zona waktu</dt><dd>' + esc((d.timezone && d.timezone.id) || '-') + '</dd>' +
+      '<dt>Koordinat</dt><dd class="mono">' + esc(d.latitude != null ? d.latitude : '-') + ', ' + esc(d.longitude != null ? d.longitude : '-') + '</dd>' +
+      '<dt>Tipe</dt><dd>' + esc(d.type || '-') + '</dd>' +
+      '</dl>' +
+      '<div class="row mt"><button class="btn small" id="btnCopyLookup">Salin hasil</button>' +
+      '<a class="btn small" target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + encodeURIComponent(d.latitude + ',' + d.longitude) + '">Buka koordinat di Google Maps</a></div>';
+    var bc = $('#btnCopyLookup');
+    if(bc) bc.onclick = function(){ copyText([d.ip, d.country, d.city, conn.isp || '', (d.timezone && d.timezone.id) || ''].join(' · '), 'Hasil pencarian disalin'); };
+  }, function(){ out.innerHTML = '<span class="pill bad">Gagal mengambil data</span><p class="muted">Sumber pencarian tidak bisa dihubungi. Coba lagi sebentar.</p>'; });
+}
+
+/* ---------- Leak tests ---------- */
+function runLeak(){
+  var out = $('#leakOut');
+  out.innerHTML = '<h3>Hasil tes WebRTC</h3><p class="muted"><span class="spin"></span> Menguji WebRTC, tunggu beberapa detik…</p>';
+  var found = {};
+  var finished = false;
+  function finish(){
+    if(finished) return; finished = true;
+    var list = Object.keys(found);
+    if(!list.length){ out.innerHTML = '<h3>Hasil tes WebRTC</h3><p><span class="pill good">Aman</span></p><p class="muted">Tidak ada alamat IP yang muncul lewat WebRTC. Browser kamu tidak membocorkan IP lewat jalur ini.</p>'; return; }
+    var leak = state.ip && list.indexOf(state.ip) === -1;
+    out.innerHTML = '<h3>Hasil tes WebRTC</h3><p>IP yang terlihat lewat WebRTC <b class="mono">' + esc(list.join(', ')) + '</b></p>' +
+      (leak ? '<p><span class="pill warn">Berbeda dari IP publik</span></p><p class="muted">IP WebRTC beda dengan IP publik di atas. Kalau kamu sedang memakai VPN, ini tanda kebocoran. Matikan WebRTC atau pakai pemblokir WebRTC.</p>'
+            : '<p><span class="pill good">Sama dengan IP publik</span></p><p class="muted">WebRTC menunjukkan IP yang sama dengan koneksi biasa, tidak ada kebocoran tambahan.</p>');
+  }
+  try{
+    var pc = new RTCPeerConnection({ iceServers:[{ urls:'stun:stun.l.google.com:19302' }, { urls:'stun:stun1.l.google.com:19302' }] });
+    pc.createDataChannel('');
+    pc.onicecandidate = function(e){
+      if(e.candidate && e.candidate.candidate){
+        var m = e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/g);
+        if(m) m.forEach(function(x){ found[x] = true; });
+        var m6 = e.candidate.candidate.match(/([0-9a-fA-F]{0,4}:){2,}[0-9a-fA-F]{0,4}/);
+        if(m6 && m6[0].indexOf('::') === -1 || (m6 && m6[0].length > 8)) found[m6[0]] = true;
+      } else { setTimeout(finish, 600); }
+    };
+    pc.createOffer().then(function(o){ return pc.setLocalDescription(o); });
+    setTimeout(finish, 9000);
+  }catch(e){ out.innerHTML = '<h3>Hasil tes WebRTC</h3><p><span class="pill bad">Tidak didukung</span></p><p class="muted">Browser ini tidak mendukung WebRTC atau WebRTC sedang dimatikan total.</p>'; }
+}
+function pageContextLine(){
+  var proto = location.protocol || 'tidak dikenal';
+  var online = navigator.onLine ? 'Online' : 'Offline';
+  return 'Protokol halaman <b class="mono">' + esc(proto) + '</b> · Status browser <b>' + online + '</b>';
+}
+function blockedMessage(){
+  if(!navigator.onLine) return 'Browser melaporkan status Offline. Periksa data seluler atau WiFi kamu, lalu jalankan tes lagi.';
+  if(location.protocol === 'file:') return 'Semua tes gagal, tapi browser melaporkan Online. Halaman ini sedang dibuka sebagai berkas (protokol file:), dan pada mode itu jaringan biasanya diblokir oleh penampil berkas. Buka halaman ini lewat alamat http atau https, bukan sebagai unduhan, lalu tes lagi. Ini bukan tanda internet kamu mati.';
+  return 'Semua tes gagal, tapi browser melaporkan Online. Kemungkinan halaman ini dibuka di dalam penampil aplikasi yang memblokir jaringan, atau jaringan kamu memblokir domain tujuan tes. Buka halaman ini langsung di browser lewat alamat https, lalu tes lagi. Ini bukan bukti internet kamu mati.';
+}
+function pingImage(url){
+  return new Promise(function(resolve){
+    var img = new Image();
+    var t0 = performance.now();
+    var done = false;
+    var timer = setTimeout(function(){ if(!done){ done = true; resolve(-1); } }, 8000);
+    img.onload = function(){ if(!done){ done = true; clearTimeout(timer); resolve(Math.round(performance.now() - t0)); } };
+    img.onerror = function(){ if(!done){ done = true; clearTimeout(timer); resolve(-1); } };
+    img.src = url + (url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
+  });
+}
+function runConn(){
+  var out = $('#connOut');
+  var fetchTargets = [
+    ['ipify', 'https://api.ipify.org?format=json'],
+    ['ipwho.is', 'https://ipwho.is/'],
+    ['ip.sb', 'https://api.ip.sb/geoip']
+  ];
+  var imgTargets = [
+    ['Google (favicon)', 'https://www.google.com/favicon.ico'],
+    ['Cloudflare (favicon)', 'https://www.cloudflare.com/favicon.ico']
+  ];
+  out.innerHTML = '<h3>Hasil tes konektivitas</h3><p class="muted">' + pageContextLine() + '</p><p class="muted"><span class="spin"></span> Menghubungi ' + (fetchTargets.length + imgTargets.length) + ' tujuan…</p>';
+  var rows = [];
+  var chain = Promise.resolve();
+  fetchTargets.forEach(function(s){
+    chain = chain.then(function(){
+      var t0 = performance.now();
+      return fetchJson(s[1], 8000).then(function(){
+        rows.push([s[0], s[1].split('/')[2], 'Fetch CORS', Math.round(performance.now() - t0) + ' ms', true]);
+      }, function(){
+        rows.push([s[0], s[1].split('/')[2], 'Fetch CORS', '-', false]);
+      });
+    });
+  });
+  imgTargets.forEach(function(s){
+    chain = chain.then(function(){
+      return pingImage(s[1]).then(function(ms){
+        rows.push([s[0], s[1].split('/')[2], 'Ping gambar', ms >= 0 ? ms + ' ms' : '-', ms >= 0]);
+      });
+    });
+  });
+  chain.then(function(){
+    var ok = rows.filter(function(r){ return r[4]; }).length;
+    var html = '<h3>Hasil tes konektivitas</h3><p class="muted">' + pageContextLine() + '</p>' +
+      '<p>' + (ok ? '<span class="pill good">' + ok + ' dari ' + rows.length + ' tujuan terhubung</span>' : '<span class="pill bad">Semua tujuan gagal</span>') + '</p>' +
+      '<table><thead><tr><th>Layanan</th><th>Host</th><th>Metode</th><th>Waktu</th><th>Status</th></tr></thead><tbody>' +
+      rows.map(function(r){ return '<tr><td>' + esc(r[0]) + '</td><td class="mono">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td>' + esc(r[3]) + '</td><td>' + (r[4] ? '<span class="pill good">Terhubung</span>' : '<span class="pill bad">Gagal</span>') + '</td></tr>'; }).join('') +
+      '</tbody></table>';
+    if(!ok) html += '<p class="muted">' + blockedMessage() + '</p>';
+    else html += '<p class="muted small">Tujuan fetch dipilih yang memang mengizinkan CORS, dan ping gambar dipakai sebagai cadangan karena memuat gambar tidak kena aturan CORS. Waktu adalah perkiraan dari browser, bukan ping ICMP murni.</p>';
+    out.innerHTML = html;
+  });
+}
+function runSpeed(){
+  var out = $('#speedOut');
+  var sources = [
+    ['Cloudflare Speed', 'https://speed.cloudflare.com/__down?bytes=2000000'],
+    ['jsDelivr CDN', 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js']
+  ];
+  out.innerHTML = '<h3>Hasil tes kecepatan unduh</h3><p class="muted">' + pageContextLine() + '</p><p class="muted"><span class="spin"></span> Mengunduh data uji…</p>';
+  function trySource(i){
+    if(i >= sources.length){
+      out.innerHTML = '<h3>Hasil tes kecepatan unduh</h3><p class="muted">' + pageContextLine() + '</p><p><span class="pill bad">Gagal di semua sumber</span></p><p class="muted">' + blockedMessage() + '</p>';
+      return;
+    }
+    var t0 = performance.now();
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 30000) : null;
+    fetch(sources[i][1], { cache:'no-store', signal: ctrl ? ctrl.signal : undefined }).then(function(r){
+      if(timer) clearTimeout(timer);
+      if(!r.ok) throw new Error('bad');
+      return r.arrayBuffer();
+    }).then(function(buf){
+      if(!buf.byteLength) throw new Error('empty');
+      var secs = (performance.now() - t0) / 1000;
+      var mbps = (buf.byteLength * 8 / secs / 1000000);
+      out.innerHTML = '<h3>Hasil tes kecepatan unduh</h3><p>Kecepatan unduh sekitar <b>' + mbps.toFixed(1) + ' Mbps</b></p><p class="muted">Dari unduhan uji ' + (buf.byteLength / 1000).toFixed(0) + ' KB lewat ' + esc(sources[i][0]) + ' dalam ' + secs.toFixed(2) + ' detik. Berkas uji ini kecil, jadi angka ini perkiraan kasar, bukan pengganti tes kecepatan penuh. Hasil dipengaruhi server uji dan beban jaringan saat itu.</p>';
+    }, function(){ trySource(i + 1); });
+  }
+  trySource(0);
+}
+
+/* ---------- Browser info ---------- */
+function renderBrowser(){
+  var gl = '-';
+  try{
+    var cv = document.createElement('canvas');
+    var ctx = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+    if(ctx){ var dbg = ctx.getExtension('WEBGL_debug_renderer_info'); gl = dbg ? ctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : ctx.getParameter(ctx.RENDERER); }
+  }catch(e){}
+  var canvasHash = '-';
+  try{
+    var c2 = document.createElement('canvas'); c2.width = 220; c2.height = 40;
+    var x = c2.getContext('2d'); x.font = '14px sans-serif'; x.fillStyle = '#0e7a5f'; x.fillText('ip-toolbox-gabungan', 8, 22);
+    var s = c2.toDataURL(); var h = 0; for(var i = 0; i < s.length; i++){ h = ((h << 5) - h + s.charCodeAt(i)) | 0; } canvasHash = 'fp' + Math.abs(h).toString(16);
+  }catch(e){}
+  kv($('#kvBrowser'), [
+    ['User agent', navigator.userAgent],
+    ['Bahasa', navigator.language + (navigator.languages ? ' · ' + navigator.languages.join(', ') : '')],
+    ['Platform', navigator.platform || '-'],
+    ['Layar', screen.width + ' x ' + screen.height + ' · jendela ' + window.innerWidth + ' x ' + window.innerHeight],
+    ['CPU core', navigator.hardwareConcurrency ? String(navigator.hardwareConcurrency) : '-'],
+    ['RAM perkiraan', navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Tidak dilaporkan'],
+    ['GPU', String(gl)],
+    ['Canvas', canvasHash, true],
+    ['Do Not Track', navigator.doNotTrack || 'Tidak diatur'],
+    ['Cookie aktif', navigator.cookieEnabled ? 'Ya' : 'Tidak']
+  ]);
+}
+
+/* ---------- DNS ---------- */
+function doDns(){
+  var domain = $('#dnsDomain').value.trim().replace(/^https?:\/\//, '').split('/')[0];
+  var type = $('#dnsType').value;
+  var out = $('#dnsOut');
+  if(!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)){ out.innerHTML = '<span class="pill bad">Domain tidak valid</span><p class="muted">Masukkan domain seperti google.com tanpa http dan tanpa garis miring.</p>'; return; }
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Mencari catatan ' + esc(type) + ' untuk ' + esc(domain) + '…</p>';
+  fetchJson('https://dns.google/resolve?name=' + encodeURIComponent(domain) + '&type=' + encodeURIComponent(type)).then(function(d){
+    var ans = d.Answer || [];
+    if(!ans.length){ out.innerHTML = '<span class="pill warn">Tidak ada catatan ' + esc(type) + '</span><p class="muted">Domain ' + esc(domain) + ' tidak punya catatan tipe ini, atau DNS belum tersebar.</p>'; return; }
+    out.innerHTML = '<span class="pill good">' + ans.length + ' catatan ditemukan</span><table><thead><tr><th>Nama</th><th>Tipe</th><th>TTL</th><th>Data</th></tr></thead><tbody>' +
+      ans.map(function(a){ return '<tr><td class="mono">' + esc(a.name) + '</td><td>' + esc(type) + '</td><td>' + esc(a.TTL) + '</td><td class="mono">' + esc(a.data) + '</td></tr>'; }).join('') +
+      '</tbody></table>';
+  }, function(){ out.innerHTML = '<span class="pill bad">Gagal mengambil DNS</span><p class="muted">Layanan Google Public DNS tidak bisa dihubungi. Coba lagi sebentar.</p>'; });
+}
+
+/* ---------- Subnet ---------- */
+function ipToInt(ip){ return ip.split('.').reduce(function(a, o){ return ((a << 8) + parseInt(o, 10)) >>> 0; }, 0); }
+function intToIp(n){ return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.'); }
+function doSubnet(){
+  var ip = $('#subIp').value.trim();
+  var cidr = parseInt($('#subCidr').value, 10);
+  var out = $('#subnetOut');
+  if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || isNaN(cidr) || cidr < 0 || cidr > 32){ out.innerHTML = '<span class="pill bad">IP atau CIDR tidak valid</span>'; return; }
+  var octBad = ip.split('.').some(function(o){ return parseInt(o, 10) > 255; });
+  if(octBad){ out.innerHTML = '<span class="pill bad">Ada oktet di atas 255</span>'; return; }
+  var mask = cidr === 0 ? 0 : (0xffffffff << (32 - cidr)) >>> 0;
+  var net = (ipToInt(ip) & mask) >>> 0;
+  var bc = (net | (~mask >>> 0)) >>> 0;
+  var wild = (~mask) >>> 0;
+  var total = Math.pow(2, 32 - cidr);
+  var hosts = cidr >= 31 ? 0 : total - 2;
+  kvInto(out, [
+    ['Network', intToIp(net) + '/' + cidr, true],
+    ['Broadcast', intToIp(bc), true],
+    ['Netmask', intToIp(mask), true],
+    ['Wildcard', intToIp(wild), true],
+    ['Total alamat', total.toLocaleString('id-ID')],
+    ['Host bisa dipakai', hosts.toLocaleString('id-ID')],
+    ['Rentang host', hosts ? intToIp(net + 1) + ' sampai ' + intToIp(bc - 1) : 'Tidak ada host usable pada CIDR ini', true],
+    ['Kelas', ip.split('.')[0] < 128 ? 'A' : ip.split('.')[0] < 192 ? 'B' : ip.split('.')[0] < 224 ? 'C' : 'D atau E'],
+    ['Privat atau publik', isPrivate(ip) ? 'Privat (jaringan lokal)' : 'Publik']
+  ]);
+}
+function kvInto(el, pairs){
+  el.innerHTML = '<dl class="kv" style="margin-top:0">' + pairs.map(function(p){ return '<dt>' + esc(p[0]) + '</dt><dd class="' + (p[2] ? 'mono' : '') + '">' + esc(p[1]) + '</dd>'; }).join('') + '</dl>';
+}
+function isPrivate(ip){
+  var p = ip.split('.').map(Number);
+  if(p[0] === 10) return true;
+  if(p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
+  if(p[0] === 192 && p[1] === 168) return true;
+  if(p[0] === 127) return true;
+  return false;
+}
+
+/* ---------- Nomor HP & perangkat ---------- */
+var PHONE_PREFIX_ID = {
+  '0811':['Telkomsel','Halo'], '0812':['Telkomsel','Halo dan SIMPATI'], '0813':['Telkomsel','SIMPATI'],
+  '0821':['Telkomsel','SIMPATI'], '0822':['Telkomsel','SIMPATI'], '0823':['Telkomsel','Kartu As'],
+  '0851':['Telkomsel','Kartu As'], '0852':['Telkomsel','Kartu As'], '0853':['Telkomsel','Kartu As'],
+  '0814':['Indosat','IM3'], '0815':['Indosat','Mentari dan Matrix'], '0816':['Indosat','Mentari dan Matrix'],
+  '0855':['Indosat','Matrix'], '0856':['Indosat','IM3'], '0857':['Indosat','IM3'], '0858':['Indosat','Mentari'],
+  '0895':['Tri','Tri'], '0896':['Tri','Tri'], '0897':['Tri','Tri'], '0898':['Tri','Tri'], '0899':['Tri','Tri'],
+  '0817':['XL','XL'], '0818':['XL','XL'], '0819':['XL','XL'], '0859':['XL','XL'], '0877':['XL','XL'], '0878':['XL','XL'],
+  '0831':['AXIS','AXIS'], '0832':['AXIS','AXIS'], '0833':['AXIS','AXIS'], '0838':['AXIS','AXIS'],
+  '0881':['Smartfren','Smartfren'], '0882':['Smartfren','Smartfren'], '0883':['Smartfren','Smartfren'],
+  '0884':['Smartfren','Smartfren'], '0885':['Smartfren','Smartfren'], '0886':['Smartfren','Smartfren'],
+  '0887':['Smartfren','Smartfren'], '0888':['Smartfren','Smartfren'], '0889':['Smartfren','Smartfren']
+};
+var DIAL_CODES = [
+  ['62','Indonesia'], ['60','Malaysia'], ['65','Singapura'], ['66','Thailand'], ['63','Filipina'],
+  ['84','Vietnam'], ['81','Jepang'], ['82','Korea Selatan'], ['86','Tiongkok'], ['91','India'],
+  ['61','Australia'], ['44','Inggris'], ['49','Jerman'], ['31','Belanda'], ['33','Prancis'],
+  ['966','Arab Saudi'], ['971','Uni Emirat Arab'], ['90','Turki'], ['7','Rusia dan Kazakhstan'], ['1','Amerika Serikat dan Kanada']
+];
+function normalizePhone(raw){
+  var s = String(raw || '').trim().replace(/[\s().-]/g, '');
+  if(!s) return '';
+  if(s.charAt(0) === '+') return '+' + s.slice(1).replace(/\D/g, '');
+  s = s.replace(/\D/g, '');
+  if(s.indexOf('0') === 0) return '+62' + s.slice(1);
+  if(s.indexOf('62') === 0) return '+' + s;
+  if(s.indexOf('8') === 0) return '+62' + s;
+  return '+' + s;
+}
+function groupNational(n){
+  if(n.length <= 4) return n;
+  var head = n.slice(0, 4), rest = n.slice(4), parts = [];
+  while(rest.length > 4){ parts.push(rest.slice(0, 4)); rest = rest.slice(4); }
+  if(rest) parts.push(rest);
+  return head + (parts.length ? ' ' + parts.join(' ') : '');
+}
+var lastPhone = null;
+function doPhone(){
+  var out = $('#phoneOut');
+  var e164 = normalizePhone($('#phoneInput').value);
+  var digits = e164.replace(/\D/g, '');
+  if(!digits || digits.length < 7 || digits.length > 15){
+    out.innerHTML = '<span class="pill bad">Nomor tidak valid</span><p class="muted">Masukkan nomor lengkap, contohnya 081234567890 atau +6281234567890. Panjang nomor internasional adalah 7 sampai 15 digit.</p>';
+    lastPhone = null; return;
+  }
+  var country = 'Tidak dikenal', code = '';
+  for(var i = 0; i < DIAL_CODES.length; i++){
+    if(digits.indexOf(DIAL_CODES[i][0]) === 0){ code = DIAL_CODES[i][0]; country = DIAL_CODES[i][1]; break; }
+  }
+  var rows, valid = true, note = '';
+  if(code === '62'){
+    var national = '0' + digits.slice(2);
+    var prefix = national.slice(0, 4);
+    var hit = PHONE_PREFIX_ID[prefix];
+    var isMobile = national.charAt(1) === '8';
+    if(isMobile && (national.length < 10 || national.length > 14)) valid = false;
+    if(!isMobile) note = 'Awalan ini bukan awalan seluler Indonesia, kemungkinan nomor telepon rumah atau layanan lain. Kode area dan kota perlu dicek terpisah.';
+    rows = [
+      ['Nomor E.164', e164, true],
+      ['Format internasional', '+62 ' + groupNational(national).slice(1), true],
+      ['Format nasional', groupNational(national), true],
+      ['Negara', 'Indonesia (+62)'],
+      ['Awalan', prefix, true],
+      ['Operator penerbit', hit ? hit[0] : 'Tidak ada di daftar awalan'],
+      ['Produk kartu', hit ? hit[1] : 'Tidak dikenal'],
+      ['Jenis jalur', isMobile ? 'Seluler (HP)' : 'Bukan seluler'],
+      ['Jumlah digit nasional', String(national.length)],
+      ['Status format', valid ? 'Sesuai pola nomor Indonesia' : 'Panjang tidak lazim untuk nomor HP Indonesia']
+    ];
+    lastPhone = { e164:e164, national:national, operator:hit ? hit[0] : '', product:hit ? hit[1] : '', country:country };
+  } else {
+    rows = [
+      ['Nomor E.164', e164, true],
+      ['Negara', code ? country + ' (+' + code + ')' : 'Kode negara tidak ada di daftar ringkas'],
+      ['Jenis jalur', 'Tidak ditentukan untuk nomor luar Indonesia di alat ini'],
+      ['Jumlah digit', String(digits.length)],
+      ['Status format', 'Panjang digit dalam rentang internasional']
+    ];
+    note = 'Detail operator di alat ini baru mencakup nomor Indonesia. Untuk nomor negara lain, pakai repo PhoneInfoga yang tautannya ada di bawah hasil ini.';
+    lastPhone = { e164:e164, national:'', operator:'', product:'', country:country };
+  }
+  out.innerHTML = '<span class="pill ' + (valid ? 'good' : 'warn') + '">' + (valid ? 'Format nomor terbaca' : 'Periksa lagi panjang nomor') + '</span>' +
+    '<dl class="kv">' + rows.map(function(r){ return '<dt>' + esc(r[0]) + '</dt><dd class="' + (r[2] ? 'mono' : '') + '">' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
+    (note ? '<p class="muted">' + esc(note) + '</p>' : '<p class="muted">Operator dibaca dari awalan yang menerbitkan nomor. Perangkat pemilik nomor tidak bisa dibaca dari nomor ini, lihat penjelasannya di panel perangkat di bawah.</p>') +
+    '<div class="row mt"><button class="btn small" id="btnCopyPhone">Salin hasil analisa</button>' +
+    '<a class="btn small" target="_blank" rel="noopener" href="https://wa.me/' + esc(digits) + '">Buka chat WhatsApp nomor ini</a></div>';
+  var bp = $('#btnCopyPhone');
+  if(bp) bp.onclick = function(){
+    if(!lastPhone) return;
+    copyText([lastPhone.e164, lastPhone.country, lastPhone.operator, lastPhone.product].filter(Boolean).join(' · '), 'Hasil analisa nomor disalin');
+  };
+}
+
+/* ---------- Perangkat sendiri ---------- */
+function parseDevice(){
+  var ua = navigator.userAgent || '';
+  var model = '', os = '', browser = '';
+  var m = ua.match(/\(([^)]+)\)/);
+  var parts = m ? m[1].split(';').map(function(x){ return x.trim(); }) : [];
+  var osPart = parts.filter(function(p){ return /Android|iPhone OS/.test(p); })[0] || parts.filter(function(p){ return /Windows NT|Mac OS X|Linux|CrOS/.test(p); })[0] || '';
+  if(/Android/.test(osPart)){ var av = osPart.match(/Android\s+([\d.]+)/); os = 'Android' + (av ? ' ' + av[1] : ''); }
+  else if(/iPhone OS/.test(osPart)){ var iv = osPart.match(/OS\s+([\d_]+)/); os = 'iOS' + (iv ? ' ' + iv[1].replace(/_/g, '.') : ''); }
+  else if(/Windows NT/.test(osPart)){ os = 'Windows'; }
+  else if(/Mac OS X/.test(osPart)){ os = 'macOS'; }
+  else if(/Linux/.test(osPart)){ os = 'Linux'; }
+  var cand = parts.filter(function(p){ return p && p !== osPart && !/^(Linux|U|en|en-US|id|id-ID|wv|Mobile Safari|AppleWebKit)$/i.test(p) && !/KNOX|Build\//.test(p); });
+  if(cand.length) model = cand[cand.length - 1].replace(/\s+Build\/.*$/, '');
+  if(/iPhone/.test(ua) && !model) model = 'iPhone';
+  if(/iPad/.test(ua)) model = 'iPad';
+  if(!model) model = /Mobile|Android|iPhone/.test(ua) ? 'Tidak dilaporkan browser' : 'Komputer, model tidak dilaporkan browser';
+  if(/Edg\//.test(ua)) browser = 'Microsoft Edge ' + (ua.match(/Edg\/([\d.]+)/) || [])[1];
+  else if(/OPR\//.test(ua)) browser = 'Opera ' + (ua.match(/OPR\/([\d.]+)/) || [])[1];
+  else if(/SamsungBrowser\//.test(ua)) browser = 'Samsung Internet ' + (ua.match(/SamsungBrowser\/([\d.]+)/) || [])[1];
+  else if(/Chrome\//.test(ua)) browser = 'Chrome ' + (ua.match(/Chrome\/([\d.]+)/) || [])[1];
+  else if(/Firefox\//.test(ua)) browser = 'Firefox ' + (ua.match(/Firefox\/([\d.]+)/) || [])[1];
+  else if(/Version\/[\d.]+.*Safari/.test(ua)) browser = 'Safari ' + (ua.match(/Version\/([\d.]+)/) || [])[1];
+  var kind = /iPad|Tablet/.test(ua) ? 'Tablet' : (/Mobile|Android|iPhone/.test(ua) ? 'HP' : 'Komputer atau laptop');
+  return { model:model, os:os || 'Tidak dikenal', browser:browser || 'Tidak dikenal', kind:kind };
+}
+var deviceInfo = null;
+function renderDevice(extra){
+  var d = parseDevice();
+  deviceInfo = {
+    model:d.model, os:d.os, browser:d.browser, kind:d.kind,
+    platform:navigator.platform || '-',
+    layar:screen.width + ' x ' + screen.height,
+    sentuh:('ontouchstart' in window) ? 'Ya, layar sentuh' : 'Tidak terdeteksi',
+    bahasa:navigator.language || '-'
+  };
+  if(extra){ for(var k in extra) deviceInfo[k] = extra[k]; }
+  kv($('#kvDevice'), [
+    ['Jenis perangkat', deviceInfo.kind],
+    ['Model', deviceInfo.model, true],
+    ['Sistem operasi', deviceInfo.os],
+    ['Browser', deviceInfo.browser],
+    ['Platform', deviceInfo.platform, true],
+    ['Layar', deviceInfo.layar],
+    ['Layar sentuh', deviceInfo.sentuh],
+    ['Bahasa perangkat', deviceInfo.bahasa]
+  ]);
+  $('#deviceNote').textContent = '';
+}
+function preciseDevice(){
+  var note = $('#deviceNote');
+  if(!navigator.userAgentData || !navigator.userAgentData.getHighEntropyValues){
+    note.textContent = 'Browser ini tidak mendukung detail presisi lewat User Agent Client Hints. Model di atas dibaca dari User Agent biasa, itu batas yang diberikan browser ini.';
+    return;
+  }
+  note.textContent = 'Meminta detail presisi dari browser…';
+  navigator.userAgentData.getHighEntropyValues(['model','platformVersion','architecture','bitness','fullVersionList','formFactors']).then(function(v){
+    var extra = {};
+    if(v.model) extra.model = v.model;
+    var d = parseDevice();
+    if(v.platformVersion) extra.os = d.os.split(' ')[0] + ', versi platform ' + v.platformVersion;
+    if(v.architecture) extra.platform = (navigator.platform || '') + ' ' + v.architecture + (v.bitness ? ' ' + v.bitness + ' bit' : '');
+    renderDevice(extra);
+    note.textContent = v.model ? 'Detail presisi diterima. Model perangkat terbaca langsung dari browser.' : 'Browser menjawab tapi tidak memberi model. Pada sebagian browser model memang dikosongkan demi privasi.';
+  }, function(){ note.textContent = 'Permintaan detail presisi ditolak browser.'; });
+}
+
+/* ---------- Koordinat GPS perangkat ini ---------- */
+function runGps(){
+  var out = $('#gpsOut');
+  var mapBox = $('#gpsMap');
+  if(!navigator.geolocation){
+    out.innerHTML = '<span class="pill bad">GPS tidak didukung</span><p class="muted">Browser ini tidak menyediakan geolocation, jadi koordinat perangkat tidak bisa dibaca. Coba buka halaman ini di Chrome atau browser HP yang mendukung lokasi.</p>';
+    return;
+  }
+  if(location.protocol !== 'https:' && location.protocol !== 'http:'){
+    out.innerHTML = '<span class="pill warn">Izin lokasi butuh http atau https</span><p class="muted">Halaman ini dibuka dengan protokol <b class="mono">' + esc(location.protocol) + '</b>. Browser biasanya menolak izin lokasi pada berkas lokal. Buka halaman ini lewat alamat http atau https, lalu tekan tombolnya lagi.</p>';
+    return;
+  }
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Meminta izin lokasi dan membaca GPS perangkat ini, jawab Izinkan pada kotak izin yang muncul…</p>';
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var c = pos.coords;
+    var lat = c.latitude, lon = c.longitude;
+    state.lastGps = { lat:lat, lon:lon, accuracy:c.accuracy, at:pos.timestamp };
+    var when = new Date(pos.timestamp);
+    var whenTxt = when.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) + ' ' + when.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    var phoneLine = lastPhone ? 'Nomor yang dicek ' + lastPhone.e164 + (lastPhone.operator ? ', operator ' + lastPhone.operator : '') + '. ' : '';
+    out.innerHTML = '<span class="pill good">Koordinat perangkat ini ditemukan</span>' +
+      '<dl class="kv">' +
+      '<dt>Latitude</dt><dd class="mono">' + esc(lat.toFixed(7)) + '</dd>' +
+      '<dt>Longitude</dt><dd class="mono">' + esc(lon.toFixed(7)) + '</dd>' +
+      '<dt>Akurasi</dt><dd>± ' + esc(Math.round(c.accuracy)) + ' meter</dd>' +
+      (c.altitude != null ? '<dt>Ketinggian</dt><dd>' + esc(Math.round(c.altitude)) + ' meter</dd>' : '') +
+      '<dt>Waktu baca</dt><dd>' + esc(whenTxt) + '</dd>' +
+      '<dt>Sumber</dt><dd>GPS dan jaringan perangkat ini, dengan izin kamu</dd>' +
+      '</dl>' +
+      '<p class="muted">' + esc(phoneLine) + 'Koordinat di atas adalah posisi perangkat yang sedang kamu pakai saat menekan tombol, bukan posisi dari nomor HP.</p>' +
+      '<div class="row mt"><button class="btn small" id="btnCopyGps">Salin koordinat</button>' +
+      '<a class="btn small" target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lon) + '">Buka di Google Maps</a></div>';
+    var bc = $('#btnCopyGps');
+    if(bc) bc.onclick = function(){ copyText(lat.toFixed(7) + ', ' + lon.toFixed(7), 'Koordinat disalin'); };
+    mapBox.style.display = 'block';
+    if(typeof L === 'undefined'){ mapBox.innerHTML = '<div class="map-fallback">Peta tidak termuat. Koordinat posisi ini ' + esc(lat) + ', ' + esc(lon) + '.</div>'; return; }
+    if(!state.gpsMap){
+      mapBox.innerHTML = '';
+      state.gpsMap = L.map('gpsMap').setView([lat, lon], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }).addTo(state.gpsMap);
+    } else { state.gpsMap.setView([lat, lon], 16); }
+    if(state.gpsMarker) state.gpsMarker.remove();
+    state.gpsMarker = L.marker([lat, lon]).addTo(state.gpsMap).bindPopup('Posisi perangkat ini, akurasi ± ' + Math.round(c.accuracy) + ' m');
+    if(c.accuracy){
+      if(state.gpsCircle) state.gpsCircle.remove();
+      state.gpsCircle = L.circle([lat, lon], { radius:c.accuracy }).addTo(state.gpsMap);
+    }
+    setTimeout(function(){ if(state.gpsMap) state.gpsMap.invalidateSize(); }, 250);
+  }, function(err){
+    var msg = 'Posisi tidak bisa dibaca.';
+    if(err.code === 1) msg = 'Izin lokasi ditolak. Koordinat akurat hanya muncul setelah kamu memberi izin, jadi aktifkan izin lokasi untuk browser ini di pengaturan HP, lalu tekan tombolnya lagi.';
+    else if(err.code === 2) msg = 'Posisi perangkat sedang tidak tersedia. Pastikan GPS atau layanan lokasi HP menyala, lalu coba lagi.';
+    else if(err.code === 3) msg = 'Waktu membaca lokasi habis. Sinyal GPS mungkin lemah di dalam ruangan, coba dekat jendela atau di luar, lalu tekan lagi.';
+    out.innerHTML = '<span class="pill bad">Koordinat belum didapat</span><p class="muted">' + esc(msg) + '</p>';
+  }, { enableHighAccuracy:true, timeout:20000, maximumAge:0 });
+}
+
+/* ---------- Radius pemancar ---------- */
+function haversineKm(lat1, lon1, lat2, lon2){
+  var R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function fmtDist(km){
+  if(km == null || isNaN(km)) return '-';
+  if(km < 1) return Math.round(km * 1000) + ' meter';
+  return km.toFixed(km < 10 ? 2 : 1).replace('.', ',') + ' km';
+}
+function connInfo(){
+  var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if(!c) return null;
+  return { type:c.type || '', effectiveType:c.effectiveType || '', downlink:c.downlink != null ? c.downlink : null, rtt:c.rtt != null ? c.rtt : null, saveData:!!c.saveData };
+}
+function accuracyVerdict(m){
+  if(m <= 20) return 'Sangat akurat, khas GPS terbuka. Posisi asli hampir pasti di dalam lingkaran kecil ini.';
+  if(m <= 50) return 'Akurat, khas GPS dibantu jaringan. Cukup untuk menentukan titik sampai tingkat bangunan.';
+  if(m <= 200) return 'Sedang, khas di dalam ruangan atau GPS dibantu WiFi dan BTS. Titik bisa bergeser beberapa bangunan.';
+  return 'Kasar, sinyal GPS lemah atau lokasi banyak dibantu BTS dan WiFi. Coba di luar ruangan lalu ukur lagi.';
+}
+function renderRadiusResult(lat, lon, acc){
+  var out = $('#radiusOut');
+  var conn = connInfo();
+  var d = state.detail;
+  var ipLat = d && d.latitude != null ? Number(d.latitude) : null;
+  var ipLon = d && d.longitude != null ? Number(d.longitude) : null;
+  var ipDist = (ipLat != null && ipLon != null) ? haversineKm(lat, lon, ipLat, ipLon) : null;
+  var rows = [
+    ['Latitude', lat.toFixed(7), true],
+    ['Longitude', lon.toFixed(7), true],
+    ['Radius akurasi', '+/- ' + Math.round(acc) + ' meter dari titik di atas'],
+    ['Penilaian akurasi', accuracyVerdict(acc)],
+    ['Titik lokasi IP', ipLat != null ? ipLat + ', ' + ipLon : 'Belum terbaca, tunggu cek IP di atas selesai', true],
+    ['Jarak titik GPS ke titik IP', ipDist != null ? fmtDist(ipDist) : 'Tidak bisa dihitung'],
+    ['Artinya', ipDist != null ? 'Kalau hanya mengandalkan IP, posisi kamu hanya bisa dipastikan berada di radius sekitar ' + fmtDist(ipDist) + ' dari titik GPS asli, itu sebabnya lokasi IP terasa meleset jauh. GPS memangkas radius itu menjadi ' + Math.round(acc) + ' meter.' : 'Bandingkan lagi setelah titik IP terbaca.']
+  ];
+  if(conn){
+    rows.push(['Jenis koneksi terbaca browser', (conn.effectiveType ? conn.effectiveType.toUpperCase() : '-') + (conn.type ? ', tipe ' + conn.type : '')]);
+    if(conn.rtt != null) rows.push(['RTT jaringan', conn.rtt + ' ms, ini waktu respons jaringan, bukan jarak ke menara', true]);
+    if(conn.downlink != null) rows.push(['Perkiraan kecepatan turun', conn.downlink + ' Mbps dari laporan browser', true]);
+  }
+  if(lastPhone && lastPhone.operator) rows.push(['Operator nomor yang dicek', lastPhone.operator + ', operator ini yang menerbitkan nomor, bukan bukti menara yang sedang melayani perangkat ini']);
+  out.innerHTML = '<span class="pill good">Koordinat dan radius terbaca</span>' +
+    '<dl class="kv">' + rows.map(function(r){ return '<dt>' + esc(r[0]) + '</dt><dd class="' + (r[2] ? 'mono' : '') + '">' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
+    '<div class="row mt"><button class="btn small" id="btnCopyRadius">Salin koordinat dan radius</button>' +
+    '<a class="btn small" target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lon) + '">Buka titik ini di Google Maps</a></div>' +
+    '<p class="muted" style="margin-top:10px">Lingkaran di peta di bawah adalah radius akurasi GPS kamu. Itu radius terkecil yang bisa dibuktikan dari data GPS. Radius dari pemancar berada di luar itu dan hanya bisa dipersempit dengan tabel patokan lingkungan di bawah.</p>';
+  var bc = $('#btnCopyRadius');
+  if(bc) bc.onclick = function(){ copyText(lat.toFixed(7) + ', ' + lon.toFixed(7) + ' radius ' + Math.round(acc) + ' m', 'Koordinat dan radius disalin'); };
+  var mapBox = $('#radiusMap');
+  mapBox.style.display = 'block';
+  if(typeof L === 'undefined'){ mapBox.innerHTML = '<div class="map-fallback">Peta tidak termuat. Koordinat ' + esc(lat) + ', ' + esc(lon) + ' radius ' + Math.round(acc) + ' m.</div>'; return; }
+  if(!state.radiusMap){
+    mapBox.innerHTML = '';
+    state.radiusMap = L.map('radiusMap').setView([lat, lon], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }).addTo(state.radiusMap);
+  } else { state.radiusMap.setView([lat, lon], 16); }
+  if(state.radiusMarker) state.radiusMarker.remove();
+  if(state.radiusCircle) state.radiusCircle.remove();
+  if(state.radiusLine) state.radiusLine.remove();
+  state.radiusMarker = L.marker([lat, lon]).addTo(state.radiusMap).bindPopup('Perangkat ini, radius ' + Math.round(acc) + ' m');
+  state.radiusCircle = L.circle([lat, lon], { radius:acc }).addTo(state.radiusMap);
+  if(state.radiusIpMarker) state.radiusIpMarker.remove();
+  if(ipLat != null && ipLon != null && ipDist > 0.05){
+    state.radiusIpMarker = L.marker([ipLat, ipLon]).addTo(state.radiusMap).bindPopup('Titik perkiraan dari IP');
+    state.radiusLine = L.polyline([[lat, lon], [ipLat, ipLon]]).addTo(state.radiusMap);
+    state.radiusMap.fitBounds([[lat, lon], [ipLat, ipLon]], { padding:[30, 30] });
+  }
+  setTimeout(function(){ if(state.radiusMap) state.radiusMap.invalidateSize(); }, 250);
+}
+function runRadius(){
+  var out = $('#radiusOut');
+  if(!navigator.geolocation){ out.innerHTML = '<span class="pill bad">GPS tidak didukung</span><p class="muted">Browser ini tidak menyediakan geolocation.</p>'; return; }
+  if(location.protocol !== 'https:' && location.protocol !== 'http:'){
+    out.innerHTML = '<span class="pill warn">Izin lokasi butuh http atau https</span><p class="muted">Halaman dibuka dengan protokol <b class="mono">' + esc(location.protocol) + '</b>, browser biasanya menolak izin lokasi pada berkas lokal. Buka lewat alamat http atau https lalu coba lagi.</p>'; return;
+  }
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Meminta izin lokasi dan membaca radius perangkat ini…</p>';
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var c = pos.coords;
+    state.lastGps = { lat:c.latitude, lon:c.longitude, accuracy:c.accuracy, at:pos.timestamp };
+    renderRadiusResult(c.latitude, c.longitude, c.accuracy);
+  }, function(err){
+    var msg = 'Posisi tidak bisa dibaca.';
+    if(err.code === 1) msg = 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini di pengaturan HP, lalu tekan tombolnya lagi.';
+    else if(err.code === 2) msg = 'Posisi sedang tidak tersedia. Pastikan GPS atau layanan lokasi HP menyala.';
+    else if(err.code === 3) msg = 'Waktu membaca lokasi habis. Coba di luar ruangan atau dekat jendela.';
+    out.innerHTML = '<span class="pill bad">Radius belum didapat</span><p class="muted">' + esc(msg) + '</p>';
+  }, { enableHighAccuracy:true, timeout:20000, maximumAge:0 });
+}
+var ENV_RADIUS = {
+  padat:'Di kota padat, patokan radiusnya 5G 100 sampai 300 meter, 4G 300 meter sampai 1 km, 3G 500 meter sampai 2 km, dan 2G 1 sampai 3 km. Menara rapat, jadi radius dari pemancar kecil.',
+  kota:'Di kota biasa, patokan radiusnya 5G 300 meter sampai 1 km, 4G 1 sampai 3 km, 3G 2 sampai 5 km, dan 2G 3 sampai 10 km.',
+  pinggiran:'Di pinggiran kota, patokan radiusnya 5G 1 sampai 2 km, 4G 3 sampai 5 km, 3G 5 sampai 8 km, dan 2G 10 sampai 20 km.',
+  desa:'Di pedesaan, patokan radiusnya 5G 2 sampai 5 km, 4G 5 sampai 10 km, 3G 8 sampai 15 km, dan 2G sampai 35 km. Satu menara melayani wilayah sangat luas, jadi radius dari pemancar tidak bisa dipersempit tanpa Cell ID.'
+};
+function showEnv(){
+  var v = $('#radiusEnv').value;
+  $('#envOut').innerHTML = '<p style="margin:0"><span class="pill neutral">Patokan lingkungan terpilih</span></p><p class="muted" style="margin:8px 0 0">' + esc(ENV_RADIUS[v] || '') + '</p>';
+}
+
+/* ---------- Mask script ---------- */
+var TOR_SCRIPT = [
+'#!/usr/bin/env bash',
+'# mask-tor-linux.sh - alihkan semua traffic dan DNS Linux lewat Tor',
+'# Gaya PrivacyNet. Butuh Tor terpasang dan akses sudo.',
+'# Pakai : sudo bash mask-tor-linux.sh start',
+'# Stop  : sudo bash mask-tor-linux.sh stop',
+'set -e',
+'TOR_UID=$(id -u debian-tor 2>/dev/null || id -u tor)',
+'TRANS_PORT=9040',
+'DNS_PORT=5353',
+'if [ "$1" = "start" ]; then',
+'  systemctl start tor 2>/dev/null || service tor start',
+'  iptables -F; iptables -t nat -F',
+'  iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN',
+'  iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports $DNS_PORT',
+'  iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports $TRANS_PORT',
+'  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT',
+'  iptables -A OUTPUT -j DROP',
+'  echo "Semua traffic sekarang lewat Tor. Cek IP kamu."',
+'elif [ "$1" = "stop" ]; then',
+'  iptables -F; iptables -t nat -F; iptables -X',
+'  echo "Aturan dibersihkan. Traffic kembali normal."',
+'else',
+'  echo "Pakai: sudo bash mask-tor-linux.sh start|stop"',
+'fi',
+''
+].join('\n');
+
+/* ---------- Checklist ---------- */
+var CHECKS = [
+  ['Kata sandi unik untuk tiap situs', 'Satu kata sandi bocor tidak membuka semua akun.'],
+  ['Verifikasi dua langkah aktif di Gmail', 'Pakai aplikasi autentikator, bukan hanya SMS.'],
+  ['Kata sandi Tokopedia, Wattpad, dan Z-lib sudah diganti', 'Ketiganya pernah bocor dan tercatat di bagian Cek Email Bocor.'],
+  ['WebRTC tidak bocor saat VPN aktif', 'Jalankan Tes WebRTC di atas setelah VPN menyala.'],
+  ['DNS memakai penyedia tepercaya', 'Contohnya 1.1.1.1 atau 9.9.9.9, bukan DNS acak dari WiFi publik.'],
+  ['Browser dan sistem operasi sudah versi terbaru', 'Update menutup celah yang paling sering dipakai penyerang.'],
+  ['Tidak klik tautan dari email yang mencurigakan', 'Nama dan tanggal lahir kamu pernah tersebar, email jebakan bisa terasa sangat personal.'],
+  ['Tidak pakai proxy gratis acak untuk login penting', 'Proxy gratis bisa membaca traffic yang tidak terenkripsi.'],
+  ['Mode Samarkan dipakai sebelum membagikan screenshot IP', 'Satu ketukan di bagian atas halaman ini.'],
+  ['Kode cadangan dua langkah disimpan di tempat aman', 'Simpan luring, jangan hanya di galeri foto.'],
+  ['Lokasi peta hanya dibagikan saat memang perlu', 'Screenshot peta IP menunjukkan perkiraan kotamu.'],
+  ['Riwayat dan unduhan laporan dibersihkan berkala', 'File JSON hasil unduhan berisi detail koneksimu.']
+];
+function renderChecks(){
+  var list = $('#checkList');
+  list.innerHTML = CHECKS.map(function(c, i){
+    var done = !!state.checks[i];
+    return '<li class="' + (done ? 'done' : '') + '"><span class="box" data-check="' + i + '" role="checkbox" aria-checked="' + done + '" tabindex="0" aria-label="' + esc(c[0]) + '">✓</span><span class="txt" data-check="' + i + '">' + esc(c[0]) + '<small>' + esc(c[1]) + '</small></span></li>';
+  }).join('');
+  var n = Object.keys(state.checks).filter(function(k){ return state.checks[k]; }).length;
+  $('#checkProgress').textContent = n + ' dari ' + CHECKS.length + ' selesai';
+  var pct = Math.round(n / CHECKS.length * 100);
+  $('#checkBar').style.width = pct + '%';
+  $('#checkBarWrap').setAttribute('aria-valuenow', pct);
+  $$('#checkList [data-check]').forEach(function(el){
+    function toggle(){ var i = el.getAttribute('data-check'); state.checks[i] = !state.checks[i]; renderChecks(); }
+    el.onclick = toggle;
+    el.onkeydown = function(e){ if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle(); } };
+  });
+}
+
+/* ---------- Mesin pencari ---------- */
+function doSearch(){
+  var q = $('#searchQ').value.trim();
+  var out = $('#searchOut');
+  if(!q){ out.innerHTML = '<span class="pill bad">Kata kunci kosong</span>'; return; }
+  var enc = encodeURIComponent(q);
+  $('#linkDdg').href = 'https://duckduckgo.com/?q=' + enc;
+  $('#linkGoogle').href = 'https://www.google.com/search?q=' + enc;
+  $('#linkBing').href = 'https://www.bing.com/search?q=' + enc;
+  $('#searchLinks').style.display = 'flex';
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Mencari di DuckDuckGo dan Wikipedia…</p>';
+  var pDdg = fetchJson('https://api.duckduckgo.com/?q=' + enc + '&format=json&no_html=1&skip_disambig=1', 12000).then(function(d){ return { ok:true, d:d }; }, function(){ return { ok:false }; });
+  var pWiki = fetchJson('https://id.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + enc + '&srlimit=6&format=json&origin=*', 12000).then(function(d){ return { ok:true, d:d }; }, function(){ return { ok:false }; });
+  Promise.all([pDdg, pWiki]).then(function(res){
+    var html = '<h3>DuckDuckGo</h3>';
+    var ddg = res[0], wiki = res[1];
+    if(!ddg.ok){ html += '<p><span class="pill bad">Gagal</span></p><p class="muted">DuckDuckGo tidak bisa dihubungi. Pakai tombol DuckDuckGo di atas.</p>'; }
+    else {
+      var d = ddg.d;
+      var topics = [];
+      (d.RelatedTopics || []).forEach(function(t){ if(t.Text && t.FirstURL) topics.push(t); else if(t.Topics) t.Topics.forEach(function(x){ if(x.Text && x.FirstURL) topics.push(x); }); });
+      if(d.AbstractText){
+        html += '<p style="margin:6px 0 0"><b>' + esc(d.Heading || q) + '</b></p><p class="muted" style="margin:4px 0 0">' + esc(d.AbstractText) + '</p>' + (d.AbstractURL ? '<p style="margin:6px 0 0"><a href="' + esc(d.AbstractURL) + '" target="_blank" rel="noopener">' + esc(d.AbstractSource || 'Sumber') + '</a></p>' : '');
+      } else if(!topics.length){ html += '<p class="muted">Tidak ada ringkasan instan. Buka hasil lengkap lewat tombol DuckDuckGo di atas.</p>'; }
+      if(topics.length){ html += '<ul class="res-list">' + topics.slice(0, 6).map(function(t){ return '<li><a href="' + esc(t.FirstURL) + '" target="_blank" rel="noopener">' + esc(t.Text.split(' - ')[0]) + '</a><p>' + esc(t.Text) + '</p></li>'; }).join('') + '</ul>'; }
+    }
+    html += '<h3 style="margin-top:18px">Wikipedia</h3>';
+    if(!wiki.ok){ html += '<p><span class="pill bad">Gagal</span></p><p class="muted">Wikipedia tidak bisa dihubungi. Coba lagi sebentar.</p>'; }
+    else {
+      var items = (wiki.d.query && wiki.d.query.search) || [];
+      if(!items.length){ html += '<p class="muted">Tidak ada artikel yang cocok.</p>'; }
+      else { html += '<ul class="res-list">' + items.map(function(it){ var snip = String(it.snippet || '').replace(/<[^>]*>/g, ''); return '<li><a href="https://id.wikipedia.org/wiki/' + encodeURIComponent(it.title.replace(/ /g, '_')) + '" target="_blank" rel="noopener">' + esc(it.title) + '</a><p>' + esc(snip) + '</p></li>'; }).join('') + '</ul>'; }
+    }
+    out.innerHTML = html;
+  });
+}
+
+/* ---------- OSINT domain ---------- */
+function fmtDate(s){ if(!s) return '-'; var d = new Date(s); return isNaN(d.getTime()) ? String(s) : d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }); }
+function doOsintDomain(){
+  var domain = $('#osintDomain').value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/\.$/, '');
+  var out = $('#osintDomainOut');
+  if(!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)){ out.innerHTML = '<span class="pill bad">Domain tidak valid</span><p class="muted">Masukkan domain seperti wikipedia.org tanpa http.</p>'; return; }
+  out.innerHTML = '<p class="muted"><span class="spin"></span> Mengambil RDAP, daftar subdomain crt.sh, dan DNS…</p>';
+  var pRdap = fetchJson('https://rdap.org/domain/' + encodeURIComponent(domain), 15000).then(function(d){ return { ok:!!(d && (d.ldhName || d.handle || d.events)), d:d }; }, function(){ return { ok:false }; });
+  var pCrt = fetchJson('https://crt.sh/?q=' + encodeURIComponent('%.' + domain) + '&output=json', 20000).then(function(d){ return { ok:Array.isArray(d), d:d }; }, function(){ return { ok:false }; });
+  var pA = fetchJson('https://dns.google/resolve?name=' + encodeURIComponent(domain) + '&type=A').then(function(d){ return d.Answer || []; }, function(){ return null; });
+  var pMx = fetchJson('https://dns.google/resolve?name=' + encodeURIComponent(domain) + '&type=MX').then(function(d){ return d.Answer || []; }, function(){ return null; });
+  Promise.all([pRdap, pCrt, pA, pMx]).then(function(res){
+    var html = '<h3>RDAP / WHOIS — ' + esc(domain) + '</h3>';
+    var r = res[0];
+    if(!r.ok){ html += '<p><span class="pill bad">Tidak ada data RDAP</span></p><p class="muted">Domain mungkin tidak terdaftar, atau TLD-nya belum mendukung RDAP.</p>'; }
+    else {
+      var d = r.d;
+      var registrar = '-';
+      (d.entities || []).forEach(function(e){
+        if((e.roles || []).indexOf('registrar') > -1 && e.vcardArray && e.vcardArray[1]){ e.vcardArray[1].forEach(function(v){ if(v[0] === 'fn') registrar = v[3]; }); }
+      });
+      var created = '-', expires = '-';
+      (d.events || []).forEach(function(ev){ if(ev.eventAction === 'registration') created = fmtDate(ev.eventDate); if(ev.eventAction === 'expiration') expires = fmtDate(ev.eventDate); });
+      var ns = (d.nameservers || []).map(function(n){ return n.ldhName || String(n); }).join(', ');
+      html += '<dl class="kv">' +
+        '<dt>Registrar</dt><dd>' + esc(registrar) + '</dd>' +
+        '<dt>Dibuat</dt><dd>' + esc(created) + '</dd>' +
+        '<dt>Berakhir</dt><dd>' + esc(expires) + '</dd>' +
+        '<dt>Status</dt><dd>' + esc((d.status || []).join(', ') || '-') + '</dd>' +
+        '<dt>Nameserver</dt><dd class="mono">' + esc(ns || '-') + '</dd></dl>';
+    }
+    html += '<h3 style="margin-top:18px">Subdomain dari sertifikat (crt.sh)</h3>';
+    var c = res[1];
+    if(!c.ok){ html += '<p><span class="pill bad">Gagal mengambil crt.sh</span></p><p class="muted">crt.sh lambat atau tidak bisa dihubungi. Coba lagi sebentar.</p>'; }
+    else {
+      var set = {};
+      c.d.forEach(function(row){ String(row.name_value || '').split('\n').forEach(function(n){ n = n.trim().toLowerCase().replace(/^\*\./, ''); if(n && n.slice(-domain.length) === domain && n.indexOf(' ') === -1) set[n] = true; }); });
+      var subs = Object.keys(set).sort();
+      if(!subs.length){ html += '<p class="muted">Tidak ada subdomain di catatan sertifikat publik.</p>'; }
+      else { html += '<p><span class="pill good">' + subs.length + ' subdomain</span></p><ul class="sub-list">' + subs.slice(0, 80).map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' + (subs.length > 80 ? '<p class="muted small">80 pertama ditampilkan.</p>' : ''); }
+    }
+    html += '<h3 style="margin-top:18px">DNS A dan MX</h3>';
+    function dnsLine(label, ans){
+      if(ans === null) return '<dt>' + label + '</dt><dd>Gagal mengambil</dd>';
+      if(!ans.length) return '<dt>' + label + '</dt><dd>Tidak ada catatan</dd>';
+      return '<dt>' + label + '</dt><dd class="mono">' + esc(ans.map(function(a){ return a.data; }).join(', ')) + '</dd>';
+    }
+    html += '<dl class="kv">' + dnsLine('A', res[2]) + dnsLine('MX', res[3]) + '</dl>';
+    out.innerHTML = html;
+  });
+}
+
+/* ---------- OSINT username ---------- */
+var USER_SITES = [
+  ['GitHub', 'https://github.com/'],
+  ['GitLab', 'https://gitlab.com/'],
+  ['X', 'https://x.com/'],
+  ['Instagram', 'https://www.instagram.com/'],
+  ['TikTok', 'https://www.tiktok.com/@'],
+  ['YouTube', 'https://www.youtube.com/@'],
+  ['Reddit', 'https://www.reddit.com/user/'],
+  ['LinkedIn', 'https://www.linkedin.com/in/'],
+  ['Medium', 'https://medium.com/@'],
+  ['Pinterest', 'https://www.pinterest.com/']
+];
+function doOsintUser(){
+  var u = $('#osintUser').value.trim().replace(/^@/, '');
+  var out = $('#osintUserOut');
+  if(!/^[a-zA-Z0-9._-]{2,40}$/.test(u)){ out.innerHTML = '<span class="pill bad">Username tidak valid</span><p class="muted">Pakai huruf, angka, titik, garis bawah, atau tanda hubung.</p>'; return; }
+  var enc = encodeURIComponent(u);
+  out.innerHTML = '<p><span class="pill good">' + USER_SITES.length + ' tautan profil untuk ' + esc(u) + '</span></p><div class="row mt">' +
+    USER_SITES.map(function(s){ return '<a class="btn small" href="' + s[1] + enc + '" target="_blank" rel="noopener">' + s[0] + '</a>'; }).join('') +
+    '</div><div class="row mt"><button class="btn small" id="btnCopyUserLinks">Salin semua tautan</button></div>';
+  var b = $('#btnCopyUserLinks');
+  if(b) b.onclick = function(){ copyText(USER_SITES.map(function(s){ return s[0] + ': ' + s[1] + u; }).join('\n'), 'Tautan disalin'); };
+}
+
+/* ---------- Izin browser ---------- */
+var PERMS = [
+  { key:'geolocation', label:'Lokasi' },
+  { key:'notifications', label:'Notifikasi' },
+  { key:'camera', label:'Kamera' },
+  { key:'microphone', label:'Mikrofon' },
+  { key:'clipboard-read', label:'Clipboard baca' },
+  { key:'clipboard-write', label:'Clipboard tulis' },
+  { key:'persistent-storage', label:'Penyimpanan' }
+];
+function permLabel(st){
+  if(st === 'granted') return ['Boleh', 'good'];
+  if(st === 'denied') return ['Diblokir', 'bad'];
+  if(st === 'prompt') return ['Belum ditanya', 'warn'];
+  return ['Tidak didukung', 'neutral'];
+}
+function notifState(){ return Notification.permission === 'granted' ? 'granted' : Notification.permission === 'denied' ? 'denied' : 'prompt'; }
+function queryPerm(p){
+  if(p.key === 'persistent-storage'){
+    if(navigator.storage && navigator.storage.persisted) return navigator.storage.persisted().then(function(v){ return v ? 'granted' : 'prompt'; }, function(){ return 'unsupported'; });
+    return Promise.resolve('unsupported');
+  }
+  if(!navigator.permissions || !navigator.permissions.query){
+    if(p.key === 'notifications' && 'Notification' in window) return Promise.resolve(notifState());
+    return Promise.resolve('unsupported');
+  }
+  return navigator.permissions.query({ name:p.key }).then(function(r){ return r.state; }, function(){
+    if(p.key === 'notifications' && 'Notification' in window) return notifState();
+    return 'unsupported';
+  });
+}
+function checkPerms(){
+  var box = $('#permList');
+  box.innerHTML = '<p class="muted"><span class="spin"></span> Membaca status izin…</p>';
+  Promise.all(PERMS.map(queryPerm)).then(function(states){
+    box.innerHTML = PERMS.map(function(p, i){
+      var l = permLabel(states[i]);
+      return '<div class="perm-row"><span>' + esc(p.label) + '</span><span class="perm-actions"><span class="pill ' + l[1] + '">' + l[0] + '</span><button class="btn small" data-perm-req="' + esc(p.key) + '">Minta</button></span></div>';
+    }).join('');
+    $$('#permList [data-perm-req]').forEach(function(b){
+      b.onclick = function(){
+        var key = b.getAttribute('data-perm-req');
+        var p = PERMS.filter(function(x){ return x.key === key; })[0];
+        if(!p) return;
+        b.disabled = true;
+        $('#permLog').innerHTML = '';
+        permLogAdd(p.label + ': meminta izin…');
+        requestPerm(p).then(function(){ b.disabled = false; checkPerms(); });
+      };
+    });
+  });
+}
+function permLogAdd(txt){
+  var log = $('#permLog');
+  var p = document.createElement('p');
+  p.className = 'muted'; p.style.margin = '6px 0 0'; p.textContent = txt;
+  log.appendChild(p);
+}
+/* Meminta SATU izin. Panggilan API-nya dilakukan langsung (sinkron) di dalam
+   fungsi ini, supaya saat dipanggil dari klik, permintaan masih dihitung
+   sebagai bagian dari klik itu oleh browser. Selalu resolve, tidak pernah reject. */
+function requestPerm(p){
+  if(p.key === 'geolocation'){
+    if(!navigator.geolocation){ permLogAdd('Lokasi: browser tidak mendukung.'); return Promise.resolve(); }
+    return new Promise(function(res){
+      navigator.geolocation.getCurrentPosition(
+        function(){ permLogAdd('Lokasi: Boleh.'); res(); },
+        function(e){ permLogAdd(e.code === 1 ? 'Lokasi: Diblokir.' : 'Lokasi: tidak tersedia saat ini.'); res(); },
+        { timeout:10000 }
+      );
+    });
+  }
+  if(p.key === 'notifications'){
+    if(!('Notification' in window)){ permLogAdd('Notifikasi: browser tidak mendukung.'); return Promise.resolve(); }
+    try{
+      return Promise.resolve(Notification.requestPermission()).then(function(r){
+        var st = r || notifState();
+        permLogAdd('Notifikasi: ' + (st === 'granted' ? 'Boleh.' : st === 'denied' ? 'Diblokir.' : 'Belum ditanya.'));
+      }, function(){ permLogAdd('Notifikasi: gagal diminta.'); });
+    }catch(e){ permLogAdd('Notifikasi: gagal diminta.'); return Promise.resolve(); }
+  }
+  if(p.key === 'camera' || p.key === 'microphone'){
+    var isCam = p.key === 'camera';
+    var label = isCam ? 'Kamera' : 'Mikrofon';
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ permLogAdd(label + ': browser tidak mendukung.'); return Promise.resolve(); }
+    var constraints = isCam ? { video:true } : { audio:true };
+    try{
+      return navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        permLogAdd(label + ': Boleh. Akses langsung dimatikan lagi.');
+      }, function(){ permLogAdd(label + ': Diblokir atau tidak tersedia.'); });
+    }catch(e){ permLogAdd(label + ': gagal diminta.'); return Promise.resolve(); }
+  }
+  if(p.key === 'clipboard-read'){
+    if(!navigator.clipboard || !navigator.clipboard.readText){ permLogAdd('Clipboard baca: browser tidak mendukung.'); return Promise.resolve(); }
+    return navigator.clipboard.readText().then(function(){ permLogAdd('Clipboard baca: Boleh.'); }, function(){ permLogAdd('Clipboard baca: Diblokir atau halaman belum fokus.'); });
+  }
+  if(p.key === 'clipboard-write'){
+    if(!navigator.clipboard || !navigator.clipboard.writeText){ permLogAdd('Clipboard tulis: browser tidak mendukung.'); return Promise.resolve(); }
+    return navigator.clipboard.writeText('IP Toolbox Gabungan').then(function(){ permLogAdd('Clipboard tulis: Boleh.'); }, function(){ permLogAdd('Clipboard tulis: Diblokir.'); });
+  }
+  if(p.key === 'persistent-storage'){
+    if(navigator.storage && navigator.storage.persist){ return navigator.storage.persist().then(function(v){ permLogAdd('Penyimpanan: ' + (v ? 'Boleh.' : 'Belum diberikan, browser yang menilai sendiri.')); }, function(){ permLogAdd('Penyimpanan: gagal diminta.'); }); }
+    permLogAdd('Penyimpanan: browser tidak mendukung.');
+    return Promise.resolve();
+  }
+  return Promise.resolve();
+}
+function allowAllPerms(){
+  var btn = $('#btnAllowAll');
+  btn.disabled = true;
+  $('#permLog').innerHTML = '';
+  permLogAdd('Meminta semua izin sekaligus dalam satu klik…');
+  /* Semua permintaan DILEPAS PARALEL di klik yang sama: PERMS.map menjalankan
+     requestPerm untuk tiap izin secara sinkron sekarang juga, tanpa menunggu
+     izin sebelumnya selesai. Dulu versi berurutan menunggu lokasi sampai
+     10 detik, sehingga gestur klik kedaluwarsa dan kamera/mikrofon tidak
+     pernah ditanya browser. */
+  var jobs = PERMS.map(function(p){ return requestPerm(p); });
+  Promise.all(jobs).then(function(){
+    btn.disabled = false;
+    checkPerms();
+    permLogAdd('Selesai. Status akhir tertera di daftar izin di atas. Izin yang masih gagal bisa diminta sendiri lewat tombol Minta di barisnya.');
+  });
+}
+
+/* ---------- Wire up ---------- */
+$('#btnRefresh').onclick = checkIp;
+$('#btnCopy').onclick = function(){ if(state.ip) copyText(state.ip, 'IP disalin'); else toast('IP belum terdeteksi'); };
+$('#btnDownload').onclick = function(){
+  var data = { ip:state.ip, ipv6:state.v6, detail:state.detail, riwayat:state.history.map(function(x){ return { ip:x.ip, waktu:x.at.toISOString() }; }), diambil_pada:new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'laporan-ip-toolbox.json'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('Laporan JSON diunduh');
+};
+$('#btnMask').onclick = function(){ state.masked = !state.masked; showIp(); renderHistory(); checkIpSoft(); };
+function checkIpSoft(){ if(state.detail){ var d = state.detail; kv($('#kvVers'), [['IPv4', state.v4 || 'Tidak terdeteksi', true], ['IPv6', state.v6 || 'Tidak terdeteksi', true], ['IP tampil', state.masked ? maskIp(state.ip) : state.ip, true]]); } }
+$('#btnClearHist').onclick = function(){ state.history = []; renderHistory(); toast('Riwayat dibersihkan'); };
+$('#btnLookup').onclick = doLookup;
+$('#lookupIp').addEventListener('keydown', function(e){ if(e.key === 'Enter') doLookup(); });
+$('#btnLookupMine').onclick = function(){ if(state.ip){ $('#lookupIp').value = state.ip; doLookup(); } else toast('IP kamu belum terdeteksi'); };
+$$('[data-example]').forEach(function(b){ b.onclick = function(){ $('#lookupIp').value = b.getAttribute('data-example'); doLookup(); }; });
+$('#btnLeak').onclick = runLeak;
+$('#btnConn').onclick = runConn;
+$('#btnSpeed').onclick = runSpeed;
+$('#btnAllTests').onclick = function(){ runLeak(); runConn(); runSpeed(); };
+$('#btnPhone').onclick = doPhone;
+$('#phoneInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') doPhone(); });
+$$('[data-phone]').forEach(function(b){ b.onclick = function(){ $('#phoneInput').value = b.getAttribute('data-phone'); doPhone(); }; });
+$('#btnDevicePrecise').onclick = preciseDevice;
+$('#btnCopyDevice').onclick = function(){
+  if(!deviceInfo){ toast('Info perangkat belum terbaca'); return; }
+  copyText([deviceInfo.kind, deviceInfo.model, deviceInfo.os, deviceInfo.browser, deviceInfo.layar].join(' · '), 'Info perangkat disalin');
+};
+$('#btnGps').onclick = runGps;
+$('#btnRadius').onclick = runRadius;
+$('#btnRadiusUseGps').onclick = function(){
+  if(state.lastGps){ renderRadiusResult(state.lastGps.lat, state.lastGps.lon, state.lastGps.accuracy); }
+  else { $('#radiusOut').innerHTML = '<span class="pill warn">Belum ada koordinat GPS terakhir</span><p class="muted">Tekan tombol Cek koordinat akurat perangkat ini di bagian Nomor HP, atau tombol Cek radius perangkat saya di atas, beri izin lokasi, lalu pakai tombol ini.</p>'; }
+};
+$('#btnEnv').onclick = showEnv;
+$('#btnSearch').onclick = doSearch;
+$('#searchQ').addEventListener('keydown', function(e){ if(e.key === 'Enter') doSearch(); });
+$('#btnOsintDomain').onclick = doOsintDomain;
+$('#osintDomain').addEventListener('keydown', function(e){ if(e.key === 'Enter') doOsintDomain(); });
+$('#btnOsintUser').onclick = doOsintUser;
+$('#osintUser').addEventListener('keydown', function(e){ if(e.key === 'Enter') doOsintUser(); });
+$('#btnCheckPerms').onclick = checkPerms;
+$('#btnAllowAll').onclick = allowAllPerms;
+$('#btnDns').onclick = doDns;
+$('#dnsDomain').addEventListener('keydown', function(e){ if(e.key === 'Enter') doDns(); });
+$('#btnSubnet').onclick = doSubnet;
+$$('[data-subnet]').forEach(function(b){ b.onclick = function(){ var p = b.getAttribute('data-subnet').split('|'); $('#subIp').value = p[0]; $('#subCidr').value = p[1]; doSubnet(); }; });
+$$('[data-copy]').forEach(function(b){ b.onclick = function(){ copyText(b.getAttribute('data-copy')); }; });
+$('#btnDlScript').onclick = function(){
+  var blob = new Blob([TOR_SCRIPT], { type:'text/x-shellscript' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mask-tor-linux.sh'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('Script diunduh. Baca dulu sebelum dijalankan.');
+};
+$('#scriptPreview').textContent = TOR_SCRIPT.split('\n').slice(0, 8).join('\n') + '\n…';
+
+/* ---------- Init ---------- */
+renderBrowser();
+renderDevice();
+renderChecks();
+doSubnet();
+checkIp();
+checkPerms();
+
+/* Info layar ikut segar saat ukuran jendela laptop berubah */
+var resizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    renderBrowser();
+    [state.map, state.gpsMap, state.radiusMap].forEach(function(m){ if(m) m.invalidateSize(); });
+  }, 200);
+});
+
+/* Saat koneksi internet pulih, periksa IP otomatis */
+window.addEventListener('online', function(){ toast('Koneksi kembali online, memeriksa ulang IP…'); checkIp(); });
+
+/* Tandai menu yang sedang dilihat */
+(function(){
+  var links = $$('.nav a');
+  if(!links.length || !('IntersectionObserver' in window)) return;
+  var byId = {};
+  links.forEach(function(a){ byId[a.getAttribute('href').slice(1)] = a; });
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      links.forEach(function(a){ a.classList.remove('active'); });
+      var a = byId[en.target.id];
+      if(a) a.classList.add('active');
+    });
+  }, { rootMargin:'-25% 0px -65% 0px' });
+  Object.keys(byId).forEach(function(id){ var el = document.getElementById(id); if(el) obs.observe(el); });
+})();
+</script>
+</body>
+</html>

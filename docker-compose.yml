@@ -1,0 +1,7 @@
+services:
+  ip-toolbox:
+    build: .
+    container_name: ip-toolbox
+    ports:
+      - "8080:80"
+    restart: unless-stopped
